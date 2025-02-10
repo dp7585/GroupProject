@@ -1,0 +1,7 @@
+In order to run the program:
+
+1. Compile the Java file.
+javac Run.java
+
+2. Enter the command and the subsequent UI you wish to use ("S" = SwingUI; "A" = AWTUI; "T" = text; "X" = all UI). It is case sensitive.
+java Run "S"/"A"/"T"/"X"
