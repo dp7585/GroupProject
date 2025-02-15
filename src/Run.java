@@ -1,8 +1,10 @@
 import java.util.Arrays;
-
+/*
+ * Esmari Louw: changed the the dependency   WeatherStation ws = new WeatherStation() 
+ */
 public class Run {
     public static void main(String[] args) {
-        WeatherStation ws = new WeatherStation();
+        WeatherStation ws = new WeatherStation(new Barometer(), null); //its null for now because @dora needs to do the ITempSensor and then ill add it to here 
         Thread thread = new Thread(ws);
         String[] validLetters = {"S", "T", "X", "A"};
 
