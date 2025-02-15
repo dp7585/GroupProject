@@ -3,9 +3,11 @@
  *      Michael J. Lutz
  *
  * Other Contributers
- *      Natalie Frank
+ *      Natalie Frank, Esmari Louw
  *
  * Acknowledgements
+ * 
+ * I changed the the Barometer to use interface instead of a concrete class
  */
 
 /*
@@ -27,7 +29,7 @@ import java.util.Observable ;
 public class WeatherStation extends Observable implements Runnable {
 
     private final KelvinTempSensor sensor ; // Temperature sensor.
-    private final Barometer barometer ; // Barometer.
+    private final IBarometer barometer ; // changed to use interface instead -> Esmari Louw 
 
     private final long PERIOD = 1000 ;      // 1 sec = 1000 ms
     private final int KTOC = -27315 ;       // Kelvin to Celsius conversion.
@@ -39,9 +41,9 @@ public class WeatherStation extends Observable implements Runnable {
      * When a WeatherStation object is created, it in turn creates the sensor
      * object it will use.
      */
-    public WeatherStation() {
+    public WeatherStation(IBarometer barometer) {
         sensor = new KelvinTempSensor() ;
-        barometer = new Barometer() ;
+        this.barometer = barometer; //changed direct dependency 
         currentPressure = barometer.pressure() ;
         currentReading = sensor.reading() ;
     }
