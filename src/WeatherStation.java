@@ -44,7 +44,7 @@ public class WeatherStation extends Observable implements Runnable {
     public WeatherStation(ITempSensor tempSensor, IBarometer barometer) {
         // added tempSensor for dependency - Dora Pehar-Ljoljic
         this.tempSensor = tempSensor;
-        this.barometer = barometer; //changed direct dependency 
+        this.barometer = barometer; //changed direct dependency Esmari Louw
         currentPressure = barometer.pressure() ;
         currentTemp= tempSensor.getTemperature(); // Gets the temp
     }
