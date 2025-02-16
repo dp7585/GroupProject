@@ -4,13 +4,13 @@
  *
  * Other Contributers
  *      Natalie Frank
- *
+ *      Esmari Louw fdixed the needed dependecies 
  * Acknowledgements
  */
 
 
-import java.util.Observer;
 import java.util.Observable;
+import java.util.Observer;
 
 @SuppressWarnings("deprecation")
 public class TextUI implements Observer {
@@ -42,7 +42,10 @@ public class TextUI implements Observer {
      * 
      */
     public static void main(String[] args) {
-        WeatherStation ws = new WeatherStation();
+        //created sensores objects to "inject" into the weatherstation  ->Esmari Louw 
+        ITempSensor tempSensor = new KelvinTempSensorAdapter(new KelvinTempSensor());   
+        IBarometer barometer = new Barometer();
+        WeatherStation ws = new WeatherStation(tempSensor, barometer);
         Thread thread = new Thread(ws);
         System.out.println("We land in main.");
         new TextUI(ws);
