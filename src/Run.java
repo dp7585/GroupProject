@@ -4,7 +4,7 @@ import java.util.Arrays;
  */
 public class Run {
     public static void main(String[] args) {
-        WeatherStation ws = new WeatherStation(new Barometer(), null); //its null for now because @dora needs to do the ITempSensor and then ill add it to here 
+        WeatherStation ws = new WeatherStation(new KelvinTempSensorAdapter(new KelvinTempSensor()), new Barometer()); //-> updated esmari louw
         Thread thread = new Thread(ws);
         String[] validLetters = {"S", "T", "X", "A"};
 
@@ -27,3 +27,9 @@ public class Run {
         thread.start();
     }
 }
+
+/*
+ * When i needed to run it, i had to exicute "java -cp bin Run S" But then replace each one with the different symbol for whats needed to be shown. 
+    Need to specify where the class files are, and when i compiled the java files they made a new folder called "bins" and in there is the .class files. 
+    
+ */
