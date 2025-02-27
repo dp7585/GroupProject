@@ -1,0 +1,6 @@
+week6: Update after exam on patterns disccused so far 
+
+Esmari Louw: Observer pattern
+The Observer Pattern is a design pattern where a Subject has a list of Observers that need updates when its state changes. When the Subject changes, it notifies all Observers automatically. This helps decouple components, making the system more modular and efficient, especially for real-time updates in UI or data tracking, which is what we will do in this project.
+
+The Observer Pattern could fit our project by allowing the Daily Log to notify multiple sections whenever food intake, weight, or calorie goals change. This allows automatic updates to UI elements, that we will need to implement. It improves modularity, reduces coupling, and keeps data consistent across the system in real time.
