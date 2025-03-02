@@ -4,3 +4,10 @@ Esmari Louw: Observer pattern
 The Observer Pattern is a design pattern where a Subject has a list of Observers that need updates when its state changes. When the Subject changes, it notifies all Observers automatically. This helps decouple components, making the system more modular and efficient, especially for real-time updates in UI or data tracking, which is what we will do in this project.
 
 The Observer Pattern could fit our project by allowing the Daily Log to notify multiple sections whenever food intake, weight, or calorie goals change. This allows automatic updates to UI elements, that we will need to implement. It improves modularity, reduces coupling, and keeps data consistent across the system in real time.
+
+
+Dora Pehar-Ljoljic: Adapter Pattern
+The Adapter Pattern is a design pattern that allows incompatible interfaces to work together by acting as a bridge between them, converting one interface into another that a client expects.
+
+The Adapter Pattern could be useful for our project by integrating different data objects with a unified interface. For example, since our system stores food and log data in CSV format, we can use an adapter to read the CSV files and convert the data into internal objects like Food and LogEntry. And when saving the data, the adapter would transform these objects back into the correct CSV format. 
+The use of the Adapter Pattern will decrease coupling, improve maintainability, and if the need arises, support dependency injection. 
