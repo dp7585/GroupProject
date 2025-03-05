@@ -1,8 +1,18 @@
 import java.util.Scanner;
+import java.util.Date;
 
 public class DailyLog {
 
-    public class Date {
+    public class Food {
+        private String name;
+        private int servingSize;
+        private int calories;
+
+        public Food() {
+            this.name = name;
+            this.servingSize = 0;
+            this.calories = 0;
+        }
 
     }
 
