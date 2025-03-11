@@ -1,85 +1,50 @@
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Recipe implements Food {
-    // Composite
-    private String recipeName;
-    private List<Food> ingredients; // List to store the ingredients (which could be FoodItems or other Recipes)
+public class Recipe extends Food {
+    private List<Food> ingredients = new ArrayList<>();
+    private double servings;
 
-    public Recipe(String recipeName) {
-        this.recipeName = recipeName;
-        this.ingredients = new ArrayList<>();
+    public Recipe(String name, float servings) {
+        this.name = name;
+        this.servings = servings;
     }
 
-    @Override
-    public String getFood() {
-        return recipeName; // Returns the recipe name
+    public void addIngredient(Food food) {
+        ingredients.add(food);
+        saveToFile(food, "foods.csv");
     }
 
-    @Override
-    public void addFood(String foodName, float calories, float fat, float carbs, float protein) {
-        // Creates a new FoodItem and add it to the ingredients list
-        FoodItem newFood = new FoodItem(foodName, calories, fat, carbs, protein);
-        ingredients.add(newFood);
+    public double getNutrition(String nutrition) {
+        float total = 0;
+
+        for (Food food : ingredients) {
+            total += food.getNutrition(nutrition);
+        }
+
+        return total * servings;
     }
 
-    @Override
-    public void setName(String name) {
-        this.recipeName = name; // Sets the name of the recipe
-    }
-
-    // Added unimplemented methods to not get confused by error messages
-    @Override
-    public void setCalories(float calories) {
-        
-    }
-
-    @Override
-    public void setFat(float fat) {
-        
-    }
-
-    @Override
-    public void setCarbs(float carbs) {
-    
-    }
-
-    @Override
-    public void setProtein(float protein) {
-    
-    }
-
-    // Displays all ingredients (either FoodItems or sub-recipes)
-    @Override
-    public void display() {
-        System.out.println("Recipe: " + recipeName);
-        for (Food ingredient : ingredients) {
-            ingredient.display(); 
+    public void displayInfo() {
+        System.out.println(name + " - Servings: " + servings);
+        for (Food food : ingredients) {
+            food.displayInfo();  // Display info of each ingredient
         }
     }
 
-    // A method to calculate the total nutritional values of the recipe
-    public void calculateNutrition() {
-        float totalCalories = 0;
-        float totalFat = 0;
-        float totalCarbs = 0;
-        float totalProtein = 0;
-
-        // Loop through all ingredients and sum up their values
-        // Firstly, we would need to update the Food class, and then we will calculate the values
-        for (Food ingredient : ingredients) {
-            
+    public void saveToFile(Food food, String filename) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+            Recipe recipe = (Recipe) food;
+            writer.write("r," + recipe.getName());
+            for (Food ingredient : ingredients) {
+                writer.write(ingredient + "," + servings);
+            }
+            writer.write("\n");
+        } catch (IOException e) {
+            System.out.println("Error saving food items to file: " + e.getMessage());
         }
-
-        System.out.println("Total Nutrition for " + recipeName + ":");
-        System.out.println("Calories: " + totalCalories);
-        System.out.println("Fat: " + totalFat + "g");
-        System.out.println("Carbs: " + totalCarbs + "g");
-        System.out.println("Protein: " + totalProtein + "g");
-    }
-
-    // Method to add a sub-recipe as an ingredient
-    public void addSubRecipe(Recipe subRecipe) {
-        ingredients.add(subRecipe);  // Adds another recipe to the list of ingredients
     }
 }
