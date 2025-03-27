@@ -1,10 +1,10 @@
-public class FoodItem extends Food {
-    private float calories;
-    private float fat;
-    private float carbs;
-    private float protein;
+public class FoodItem extends Food  implements DailyLogFood{
+    private double calories;
+    private double fat;
+    private double carbs;
+    private double protein;
 
-    public FoodItem(String name, float calories, float fat, float carbs, float protein) {
+    public FoodItem(String name, double calories, double fat, double carbs, double protein) {
         this.name = name;
         this.calories = calories;
         this.fat = fat;
@@ -16,7 +16,7 @@ public class FoodItem extends Food {
      * Gets specified nutrional content. 
      */
     public double getNutrition(String nutrition) {
-        switch(nutrition) {
+        switch(nutrition.toLowerCase()) {
             case "calories":
                 return calories;
             case "protein":
@@ -26,11 +26,37 @@ public class FoodItem extends Food {
             case "fat":
                 return fat;
             default:
-                return 0;
+                return 0.0;
         }
     }
 
+    @Override
     public void displayInfo() {
         System.out.println(name + " - Calories: " + calories + " | Fat: " + fat + "g | Carbs: " + carbs + "g | Protein: " + protein + "g");
+    }
+
+    @Override
+    public String getName(){
+        return name;
+    }
+
+    @Override
+    public double getCalories(){
+        return calories;
+    }
+
+    @Override
+    public double getFat(){
+        return fat;
+    }
+
+    @Override
+    public double getCarbs(){
+        return carbs;
+    }
+
+    @Override
+    public double getProtein(){
+        return protein;
     }
 }
