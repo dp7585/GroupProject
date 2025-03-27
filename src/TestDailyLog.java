@@ -12,9 +12,7 @@ public class TestDailyLog {
 
         FoodItem apple = new FoodItem("Apple", 95.0, 0.3, 25.1, 0.5);
         FoodItem pizza = new FoodItem("Pizza Slice", 285.0, 10.0, 36.0, 12.0);
-        dailyLog.addFood(today, apple);
-        dailyLog.addFood(today, pizza);
-        dailyLog.accessInfo(today);
+    
         
         //cretaing dailyLog instance 
         DailyLog dailyLog = new DailyLog();
