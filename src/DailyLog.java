@@ -1,75 +1,117 @@
-import java.util.Scanner;
-import java.util.Date;
+/*
+ * DailyLogs job: 
+ * needs to handle both foodItem and Recipe to store foods. We are using the Adapter Patter for this
+ */
+
+/*
+ * Ill use the Map<K, V> to store the data structure.
+ * the Key(K) = the date- each days log 
+ * the Value(V) = list of foods logged for that date
+ */
+
+
+import java.util.*;
+
 
 public class DailyLog {
 
-    public class Food {
-        private String name;
-        private int servingSize;
-        private int calories;
+    //a map to store logs. Each date will have list of food entries
+    private Map<Date, List<DailyLogFood>> logEntries = new HashMap<>();
+    private Map<Date, Integer> calorieLimits = new HashMap<>();
+    private Map<Date, Double> weightLogs = new HashMap<>();
 
-        public Food() {
-            this.name = name;
-            this.servingSize = 0;
-            this.calories = 0;
+    /**
+     * Adds food item to the daily log
+     */
+    public void addFood(Date date, DailyLogFood food){
+        logEntries.putIfAbsent(date, new ArrayList<>());
+        logEntries.get(date).add(food);
+        System.out.println(food.getName() + " added to log on the " + date);
+    }
+
+    /**
+     * Allows the user to change the daily calorie limit and weight for the selected date
+     */
+    public void changeData(Date date, int newCalorieLimit, double newWeight){
+        calorieLimits.put(date, newCalorieLimit);
+        weightLogs.put(date, newWeight);
+        System.out.println("Updated calorie limit to " + newCalorieLimit + " and weight to " + newWeight + "kg for " + date);
+    }
+  
+    /**
+     * Displays the log info for the given date, including the goodsss
+     */
+    public void accessInfo(Date date){
+        if (!logEntries.containsKey(date)) {
+            System.out.println("No log entry for this date.");
+            return;
+        } 
+         System.out.println("Daily log for " + date +  ":");
+         double totalCalories = 0; 
+         double totalFat = 0, totalCarbs = 0, totalProtein= 0;
+
+         for(DailyLogFood food : logEntries.get(date)){
+            System.out.println(food.getName() +  " - Calories: " + food.getCalories());
+            totalCalories += food.getCalories();
+            totalFat += food.getFat();
+            totalCarbs += food.getCarbs();
+            totalProtein += food.getProtein();
+         }
+
+        //show the calorie limit warning..
+        if (calorieLimits.containsKey(date)){
+            int limit = calorieLimits.get(date);
+            System.out.println("Total Calories: " + totalCalories + " / Limit: " + limit);
+        if (totalCalories > limit) {
+            System.out.println("You have reached your calorie limit for this day!");
+        }
+    }
+    //show weight
+        if (weightLogs.containsKey(date)) {
+            System.out.println("Weight for this day: " + weightLogs.get(date) + "kg");
         }
 
+        //calculate the nutrition breakdown
+        double totalMacronutrients  = totalFat + totalCarbs + totalProtein;
+
+        if (totalMacronutrients > 0 ) {
+            System.out.printf("Nutrition Breakdown: %.0f%% Fat, %.0f%% Protein\n",
+            (totalFat / totalMacronutrients) * 100,
+            (totalCarbs / totalMacronutrients) * 100,
+            (totalProtein / totalMacronutrients) * 100);
+        }
     }
 
-    public void dateValidation(String input) {
-        /*
-         * If the selected date does not already exist in the log, the information shall be initialized as follows:
-         * The food intake is empty.
-         * The calorie limit and weight are determined using the rules from the Daily Log section above.
-         */
-    }
+    /**
+     * Delete specifc food item from the log on given date
+     */
+    public void deleteLog(Date date, String foodName){
+        if(!logEntries.containsKey(date)){
+            System.out.println("No log entrie found for this date.");
+            return;
+        }
 
-    public void changeData(Date date) {
-        /*
-         * The program shall allow the user to change the daily calorie limit and weight for the selected date.
-         */
-    }
+        List<DailyLogFood> foods = logEntries.get(date);
+        boolean removed =false;
 
-    public void addFood(Date date) {
-        /*
-         * The program shall support adding of new basic foods and recipes in a manner consistent with the specifications under Food Collection.
-         */
-    }
+        Iterator<DailyLogFood> iterator = foods.iterator();
 
-    public void accessInfo(Date date) {
-        /*
-         * The program shall, by some means, provide the user access to the following information for the selected date:
-         * Each food item consumed, along with the number of servings and total calories.
-         * The total number of calories consumed for the day and some indication of whether this exceeds the set limit.
-         * The weight for the day.
-         * A breakdown of nutrition in terms of the percentage of total grams of fats, carbohydrates, and protein, each to the nearest 1%. The total must be 100%.
-         */
-    }
+        while (iterator.hasNext()) {
+            DailyLogFood food = iterator.next();
+            if (food.getName().equalsIgnoreCase(foodName)) {
+                iterator.remove();
+                removed =true;
+                System.out.println(foodName + " removed from log on " + date);
+                break;
+            }
+        }
 
-    public void addLog(Date date) {
-        /*
-         * The program shall allow the user to add a food item and the number of servings to the daily log on the currently selected date.
-         */
-    }
+        if (!removed) {
+            System.out.println("No food matches with this name '" + foodName + "' in the log for this date");
+        }
 
-    public void deleteLog(Date date) {
-        /*
-         * The program shall allow the user to delete food items in the daily log. The user shall be able to unambiguously specify which food to delete even if several entries have the same food name.
-         */
-    }
-
-    
-    
-    public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-
-        System.out.println("Welcome to your Wellness Manager.");
-        scanner.nextLine();
-
-        System.out.println("Select a date to log activities.");
-        System.out.println("Enter as [MM/DD/YYYY].");
-        System.out.println("Press enter for today.");
-        String date = scanner.nextLine();
-        
+        if (foods.isEmpty()) {
+            logEntries.remove(date);
+        }
     }
 }
