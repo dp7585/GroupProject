@@ -7,9 +7,17 @@
  * Ill use the Map<K, V> to store the data structure.
  * the Key(K) = the date- each days log 
  * the Value(V) = list of foods logged for that date
+ * 
+ * ESMARI LOUW 
  */
 
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 
@@ -19,6 +27,14 @@ public class DailyLog {
     private Map<Date, List<DailyLogFood>> logEntries = new HashMap<>();
     private Map<Date, Integer> calorieLimits = new HashMap<>();
     private Map<Date, Double> weightLogs = new HashMap<>();
+    private static final String LOG_FILE = "log.csv"; //adding to log the info to the file with strings
+
+    public DailyLog(){
+        logEntries = new HashMap<>();
+        weightLogs = new HashMap<>();
+        calorieLimits = new HashMap<>();
+        loadLogFromCSV(); //load log data on startup 
+    }
 
     /**
      * Adds food item to the daily log
@@ -26,7 +42,7 @@ public class DailyLog {
     public void addFood(Date date, DailyLogFood food){
         logEntries.putIfAbsent(date, new ArrayList<>());
         logEntries.get(date).add(food);
-        System.out.println(food.getName() + " added to log on the " + date);
+        saveLogToCSV(); //saves straight away after adding
     }
 
     /**
@@ -35,7 +51,9 @@ public class DailyLog {
     public void changeData(Date date, int newCalorieLimit, double newWeight){
         calorieLimits.put(date, newCalorieLimit);
         weightLogs.put(date, newWeight);
-        System.out.println("Updated calorie limit to " + newCalorieLimit + " and weight to " + newWeight + "kg for " + date);
+        saveLogToCSV();     //save log to csv after data change
+
+        //System.out.println("Updated calorie limit to " + newCalorieLimit + " and weight to " + newWeight + "kg for " + date);
     }
   
     /**
@@ -46,6 +64,7 @@ public class DailyLog {
             System.out.println("No log entry for this date.");
             return;
         } 
+
          System.out.println("Daily log for " + date +  ":");
          double totalCalories = 0; 
          double totalFat = 0, totalCarbs = 0, totalProtein= 0;
@@ -115,6 +134,80 @@ public class DailyLog {
         }
     }
 
+    /**
+     * Save log data to CSV (Food, Weight, Calorie Limits)
+     * @param date
+     * @return
+     */
+
+     private void saveLogToCSV(){
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(LOG_FILE))){
+            //save the weight entries
+            for(Map.Entry<Date, Double> entry : weightLogs.entrySet()){
+                Date date = entry.getKey();
+                writer.write(String.format("%tY,%tm,%td,w,%1f\n", date ,date, date, entry.getValue()));
+            }
+
+            // save calorie limit entry
+            for(Map.Entry<Date, Integer> entry :calorieLimits.entrySet()){
+                Date date = entry.getKey();
+                writer.write(String.format("%tY,%tm,%td,c,%d\n", date,date,date, entry.getValue()));
+            }
+
+            //save food log entries
+            for (Map.Entry<Date, List<DailyLogFood>> entry : logEntries.entrySet()){
+                Date date = entry.getKey();
+                for(DailyLogFood food : entry.getValue()){
+                    writer.write(String.format("%tY, %tm, %td,f,%s,1\n", date,date,date,food.getName()));
+                }
+            }
+        } catch (IOException e){
+            System.out.println("Error saving log file: " + e.getMessage());
+        }
+     }
+
+     /**
+      * load log data from CSV (Food, Weight, Calorie limits)
+      */
+      private void loadLogFromCSV(){
+        File file = new File(LOG_FILE);
+        if(!file.exists()) return; //if no loggie log exists do nada
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(LOG_FILE))){
+            String line;
+            while ((line = reader.readLine()) != null){
+                String[] parts = line.split(",");
+                int year = Integer.parseInt(parts[0]);
+                int month = Integer.parseInt(parts[1]);
+                int day = Integer.parseInt(parts[2]);
+                Date date = new GregorianCalendar(year, month - 1, day).getTime();
+
+                switch (parts[3]) {
+                    //weight entry
+                    case "w":
+                        double weight = Double.parseDouble(parts[4]);
+                        weightLogs.put(date, weight);
+                        break;
+                    //calorie limit entry
+                    case "c":
+                        int calorieLimit = Integer.parseInt(parts[4]);
+                        calorieLimits.put(date, calorieLimit);
+                        break;
+                    //food entry!
+                    case "f":
+                        String foodName = parts[4];
+                        DailyLogFood food = new FoodItem(foodName, 0, 0, 0, 0); //just 0 for placeholders
+                        logEntries.putIfAbsent(date, new ArrayList<>());
+                        logEntries.get(date).add(food);
+                        break;
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error loading the log file: " + e.getMessage());
+        }
+      }
+
+      //getter methods
     public boolean hasLogEntriesForDate(Date date) {
         return logEntries.containsKey(date);
     }
