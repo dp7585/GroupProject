@@ -11,4 +11,5 @@ public class Controller {
     public void initialize() {
         view.display();
     }
+    
 }

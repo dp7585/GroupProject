@@ -1,12 +1,13 @@
 // FoodDetailsDialog.java - New class to show nutrition details
-import javax.swing.*;
 import java.awt.*;
+import java.util.Map;
+import javax.swing.*;
 
 public class FoodDetailsDialog extends JDialog {
     public FoodDetailsDialog(Food food) {
         setTitle(food.getName() + " Details");
         setLayout(new BorderLayout());
-        setSize(300, 200);
+        setSize(350, 250);  // Slightly larger to accommodate more info
 
         JTextArea detailsArea = new JTextArea();
         detailsArea.setEditable(false);
@@ -19,11 +20,16 @@ public class FoodDetailsDialog extends JDialog {
             detailsArea.append(String.format("Protein: %.1fg\n", item.getProtein()));
         } else if (food instanceof Recipe) {
             Recipe recipe = (Recipe)food;
-            detailsArea.append("Recipe Ingredients:\n");
-            for (Food ingredient : recipe.getIngredients()) {
-                detailsArea.append("- " + ingredient.getName() + "\n");
+            detailsArea.append(String.format("Recipe (%.1f servings):\n", recipe.getServings()));
+            detailsArea.append("Ingredients:\n");
+            
+            for (Map.Entry<Food, Double> entry : recipe.getIngredients().entrySet()) {
+                Food ingredient = entry.getKey();
+                double servings = entry.getValue();
+                detailsArea.append(String.format("- %.1f servings of %s\n", servings, ingredient.getName()));
             }
-            detailsArea.append(String.format("\nPer Serving (%.1f):\n", recipe.getServings()));
+            
+            detailsArea.append("\nNutrition per serving:\n");
             detailsArea.append(String.format("Calories: %.1f\n", recipe.getNutrition("calories")));
             detailsArea.append(String.format("Fat: %.1fg\n", recipe.getNutrition("fat")));
             detailsArea.append(String.format("Carbs: %.1fg\n", recipe.getNutrition("carbs")));

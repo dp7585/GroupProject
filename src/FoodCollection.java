@@ -29,30 +29,60 @@ public class FoodCollection {
     }
 
     // Load foods from the CSV file
-    public void loadFromFile(String filename) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] fields = line.split(",");
-                if (fields[0].equals("b")) {
+public void loadFromFile(String filename) {
+    List<Food> tempBasicFoods = new ArrayList<>(); // First pass - basic foods
+    List<String> recipeLines = new ArrayList<>();   // Store recipe lines for second pass
 
-                    // A basic food item, like Hot Dog
-                    String name = fields[1];
-                    double calories = Double.parseDouble(fields[2]);
-                    double fat = Double.parseDouble(fields[3]);
-                    double carbs = Double.parseDouble(fields[4]);
-                    double protein = Double.parseDouble(fields[5]);
+    try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+        String line;
+        while ((line = reader.readLine()) != null) {
+            String[] fields = line.split(",");
+            if (fields[0].equals("b")) {
+                // Basic food - add immediately
+                String name = fields[1];
+                double calories = Double.parseDouble(fields[2]);
+                double fat = Double.parseDouble(fields[3]);
+                double carbs = Double.parseDouble(fields[4]);
+                double protein = Double.parseDouble(fields[5]);
 
-                    // Create a new FoodItem object
-                    FoodItem food = new FoodItem(name, calories, fat, carbs, protein);
-                    foodItems.add(food);
-                }
-                // Add more parsing logic for recipes if needed (r for recipes)
+                FoodItem food = new FoodItem(name, calories, fat, carbs, protein);
+                tempBasicFoods.add(food);
+            } else if (fields[0].equals("r")) {
+                // Recipe - save for second pass
+                recipeLines.add(line);
             }
-        } catch (IOException e) {
-            System.out.println("Error reading food file: " + e.getMessage());
         }
+
+        // Add all basic foods to main collection first
+        this.foodItems.addAll(tempBasicFoods);
+
+        // Second pass - process recipes now that all basic foods are loaded
+        for (String recipeLine : recipeLines) {
+            String[] fields = recipeLine.split(",");
+            String name = fields[1];
+            Recipe recipe = new Recipe(name, 1.0); // Default 1 serving
+
+            // Process ingredients (pairs of name,servings starting at index 2)
+            for (int i = 2; i < fields.length; i += 2) {
+                String ingredientName = fields[i];
+                double servings = Double.parseDouble(fields[i + 1]);
+
+                Food ingredient = findFoodByName(ingredientName);
+                if (ingredient == null) {
+                    System.err.println("Warning: Ingredient not found - " + ingredientName);
+                    continue;
+                }
+                recipe.addIngredient(ingredient, servings); // Now passing servings too
+            }
+
+            this.foodItems.add(recipe);
+        }
+    } catch (IOException e) {
+        System.out.println("Error reading food file: " + e.getMessage());
+    } catch (NumberFormatException e) {
+        System.out.println("Error parsing number in food file: " + e.getMessage());
     }
+}
 
     public void saveToFile(List<Food> foodItems, String filename) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
