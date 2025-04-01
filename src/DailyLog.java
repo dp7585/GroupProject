@@ -114,4 +114,28 @@ public class DailyLog {
             logEntries.remove(date);
         }
     }
+
+    public boolean hasLogEntriesForDate(Date date) {
+        return logEntries.containsKey(date);
+    }
+    
+    public List<DailyLogFood> getLogEntriesForDate(Date date) {
+        return logEntries.getOrDefault(date, new ArrayList<>());
+    }
+    
+    public int getCalorieLimit(Date date) {
+        return calorieLimits.getOrDefault(date, 2000); // Default as per requirements
+    }
+    
+    public double getWeight(Date date) {
+        return weightLogs.getOrDefault(date, 150.0); // Default as per requirements
+    }
+    
+    public void setCalorieLimit(Date date, int limit) {
+        calorieLimits.put(date, limit);
+    }
+    
+    public void setWeight(Date date, double weight) {
+        weightLogs.put(date, weight);
+    }
 }

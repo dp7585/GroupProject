@@ -8,4 +8,9 @@ public abstract class Food {
     public abstract double getNutrition(String nutrition);
 
     public abstract void displayInfo();
+
+    @Override
+    public String toString() {
+        return getName();
+    }
 }

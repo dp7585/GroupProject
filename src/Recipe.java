@@ -15,7 +15,7 @@ public class Recipe extends Food {
 
     public void addIngredient(Food food) {
         ingredients.add(food);
-        saveToFile(food, "foods.csv");
+        saveToFile(food, "src/foods.csv");
     }
 
     public double getNutrition(String nutrition) {
@@ -46,5 +46,15 @@ public class Recipe extends Food {
         } catch (IOException e) {
             System.out.println("Error saving food items to file: " + e.getMessage());
         }
+    }
+
+    // Returns the list of ingredients
+    public Food[] getIngredients() {
+        return ingredients.toArray(new Food[0]);
+
+    }
+
+    public Object getServings() {
+       return servings;
     }
 }

@@ -11,12 +11,12 @@ public class FoodCollection {
 
     // loads food when the program starts
     public FoodCollection() {
-        loadFromFile("foods.csv");
+        loadFromFile("src/foods.csv");
     }
 
     public void addFood(Food food) {
         foodItems.add(food);
-        saveToFile(foodItems, "foods.csv");
+        saveToFile(foodItems, "src/foods.csv");
     }
 
     public Food getFood(String name) {
@@ -35,7 +35,7 @@ public class FoodCollection {
             while ((line = reader.readLine()) != null) {
                 String[] fields = line.split(",");
                 if (fields[0].equals("b")) {
-                    
+
                     // A basic food item, like Hot Dog
                     String name = fields[1];
                     double calories = Double.parseDouble(fields[2]);
@@ -65,5 +65,18 @@ public class FoodCollection {
         } catch (IOException e) {
             System.out.println("Error saving food items to file: " + e.getMessage());
         }
+    }
+
+    public List<Food> getAllFoods() {
+        return new ArrayList<>(foodItems); // Return a copy for encapsulation
+    }
+
+    public Food findFoodByName(String name) {
+        for (Food food : foodItems) {
+            if (food.getName().equalsIgnoreCase(name)) {
+                return food;
+            }
+        }
+        return null;
     }
 }
