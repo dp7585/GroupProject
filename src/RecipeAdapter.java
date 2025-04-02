@@ -1,4 +1,9 @@
+/**
+ * Esmari Louw Adapter class for the Recipe class that implements the dailylogfood
+ */
+
 public class RecipeAdapter implements DailyLogFood{
+    @SuppressWarnings("FieldMayBeFinal")
     private Recipe recipe;
 
     public RecipeAdapter(Recipe recipe){
