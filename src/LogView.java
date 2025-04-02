@@ -2,6 +2,8 @@
 // Enhanced LogView.java
 import java.awt.*;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
@@ -16,6 +18,8 @@ public class LogView implements View {
     private JTextField servingsField;
     private JLabel calorieStatusLabel;
     private JLabel nutritionBreakdownLabel;
+
+    private Map<String, Double> foodServingsMap = new HashMap<>();
 
     public LogView(Model model) {
         this.model = model;
@@ -103,64 +107,93 @@ public class LogView implements View {
     }
 
     private void addFoodToLog() {
-        try {
-            Food selectedFood = (Food) foodComboBox.getSelectedItem();
-            double servings = Double.parseDouble(servingsField.getText());
+    try {
+        Food selectedFood = (Food) foodComboBox.getSelectedItem();
+        double servings = Double.parseDouble(servingsField.getText());
 
-            if (servings <= 0) {
-                JOptionPane.showMessageDialog(panel, "Servings must be greater than 0");
-                return;
-            }
-
-            DailyLogFood logFood;
-            if (selectedFood instanceof FoodItem) {
-                logFood = new FoodItemAdapter((FoodItem) selectedFood);
-            } else {
-                logFood = new RecipeAdapter((Recipe) selectedFood);
-            }
-
-            model.getDailyLog().addFood(new Date(), logFood);
-            updateLogDisplay();
-            servingsField.setText("");
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(panel, "Please enter a valid number for servings.");
+        if (servings <= 0) {
+            JOptionPane.showMessageDialog(panel, "Servings must be greater than 0");
+            return;
         }
+
+        DailyLogFood logFood;
+        if (selectedFood instanceof FoodItem) {
+            logFood = new FoodItemAdapter((FoodItem) selectedFood);
+        } else {
+            logFood = new RecipeAdapter((Recipe) selectedFood);
+        }
+
+        // Create a wrapper that applies servings
+        DailyLogFood scaledFood = new DailyLogFood() {
+            @Override
+            public String getName() { return logFood.getName(); }
+            @Override
+            public double getCalories() { return logFood.getCalories() * servings; }
+            @Override
+            public double getFat() { return logFood.getFat() * servings; }
+            @Override
+            public double getCarbs() { return logFood.getCarbs() * servings; }
+            @Override
+            public double getProtein() { return logFood.getProtein() * servings; }
+        };
+
+        model.getDailyLog().addFood(new Date(), scaledFood);
+        updateLogDisplay();
+        servingsField.setText("");
+        
+        // Force UI update
+        panel.revalidate();
+        panel.repaint();
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(panel, "Please enter a valid number for servings.");
     }
+}
 
     private void removeSelectedFood() {
         int selectedRow = logTable.getSelectedRow();
         if (selectedRow >= 0) {
             String foodName = (String) tableModel.getValueAt(selectedRow, 0);
             model.getDailyLog().deleteLog(new Date(), foodName);
+            foodServingsMap.remove(foodName);  // Remove from our local map
             updateLogDisplay();
         } else {
             JOptionPane.showMessageDialog(panel, "Please select a food to remove");
         }
     }
 
-    private void updateLogDisplay() {
-        tableModel.setRowCount(0);
-        Date today = new Date();
+    public void refreshFoodComboBox() {
+    foodComboBox.removeAllItems();
+    for (Food food : model.getFoodCollection().getAllFoods()) {
+        foodComboBox.addItem(food);
+    }
+}
 
-        double totalCalories = 0;
-        double totalFat = 0, totalCarbs = 0, totalProtein = 0;
+private void updateLogDisplay() {
+    tableModel.setRowCount(0);
+    Date today = new Date();
 
-        for (DailyLogFood food : model.getDailyLog().getLogEntriesForDate(today)) {
-            Object[] row = {
-                    food.getName(),
-                    1.0, // servings
-                    food.getCalories(),
-                    food.getFat(),
-                    food.getCarbs(),
-                    food.getProtein()
-            };
-            tableModel.addRow(row);
+    double totalCalories = 0;
+    double totalFat = 0, totalCarbs = 0, totalProtein = 0;
 
-            totalCalories += food.getCalories();
-            totalFat += food.getFat();
-            totalCarbs += food.getCarbs();
-            totalProtein += food.getProtein();
-        }
+    for (DailyLogFood food : model.getDailyLog().getLogEntriesForDate(today)) {
+        // Get servings from our local map (default to 1.0 if not found)
+        double servings = foodServingsMap.getOrDefault(food.getName(), 1.0);
+        
+        Object[] row = {
+            food.getName(),
+            servings,
+            food.getCalories() * servings,
+            food.getFat() * servings,
+            food.getCarbs() * servings,
+            food.getProtein() * servings
+        };
+        tableModel.addRow(row);
+
+        totalCalories += food.getCalories() * servings;
+        totalFat += food.getFat() * servings;
+        totalCarbs += food.getCarbs() * servings;
+        totalProtein += food.getProtein() * servings;
+    }
 
         // Update summary labels
         int calorieLimit = model.getDailyLog().getCalorieLimit(today);

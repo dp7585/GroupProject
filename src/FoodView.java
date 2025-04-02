@@ -221,49 +221,56 @@ public class FoodView implements View {
         // Button panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton saveButton = new JButton("Save Recipe");
-        saveButton.addActionListener(e -> {
-            try {
-                String name = nameField.getText().trim();
-                if (name.isEmpty()) {
-                    JOptionPane.showMessageDialog(dialog, "Please enter a recipe name");
-                    return;
-                }
-
-                double servings = Double.parseDouble(servingsField.getText());
-                if (servings <= 0) {
-                    JOptionPane.showMessageDialog(dialog, "Servings must be positive");
-                    return;
-                }
-
-                if (ingredientsModel.isEmpty()) {
-                    JOptionPane.showMessageDialog(dialog, "Please add at least one ingredient");
-                    return;
-                }
-
-                Recipe recipe = new Recipe(name, servings);
-                // Need to track both food and servings - using a parallel list
-                List<Food> foods = model.getFoodCollection().getAllFoods();
-                for (int i = 0; i < ingredientsModel.size(); i++) {
-                    String item = ingredientsModel.get(i);
-                    // Parse the food name from the list item
-                    String foodName = item.substring(item.indexOf("of") + 3);
-                    Food food = foods.stream()
-                            .filter(f -> f.getName().equals(foodName))
-                            .findFirst()
-                            .orElse(null);
-                    if (food != null) {
-                        double itemServings = Double.parseDouble(item.substring(0, item.indexOf(" ")));
-                        recipe.addIngredient(food, itemServings);
-                    }
-                }
-
-                model.getFoodCollection().addFood(recipe);
-                updateFoodList();
-                dialog.dispose();
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(dialog, "Please enter valid numbers");
+         saveButton.addActionListener(e -> {
+        try {
+            String name = nameField.getText().trim();
+            if (name.isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "Please enter a recipe name");
+                return;
             }
-        });
+
+            double servings = Double.parseDouble(servingsField.getText());
+            if (servings <= 0) {
+                JOptionPane.showMessageDialog(dialog, "Servings must be positive");
+                return;
+            }
+
+            if (ingredientsModel.isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "Please add at least one ingredient");
+                return;
+            }
+
+            Recipe recipe = new Recipe(name, servings);
+            List<Food> foods = model.getFoodCollection().getAllFoods();
+            
+            for (int i = 0; i < ingredientsModel.size(); i++) {
+                String item = ingredientsModel.get(i);
+                try {
+                    // Split on "servings of" to handle the text format
+                    String[] parts = item.split("servings of");
+                    if (parts.length == 2) {
+                        // Handle different decimal separators (both . and ,)
+                        String servingsStr = parts[0].trim().replace(",", ".");
+                        double itemServings = Double.parseDouble(servingsStr);
+                        String foodName = parts[1].trim();
+                        Food food = model.getFoodCollection().findFoodByName(foodName);
+                        if (food != null) {
+                            recipe.addIngredient(food, itemServings);
+                        }
+                    }
+                } catch (NumberFormatException ex) {
+                    System.err.println("Error parsing ingredient: " + item);
+                    ex.printStackTrace();
+                }
+            }
+            model.getFoodCollection().addFood(recipe);
+            updateFoodList();
+            dialog.dispose();
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(dialog, "Please enter valid numbers");
+            ex.printStackTrace(); // This will help debug the issue
+        }
+    });
 
         JButton cancelButton = new JButton("Cancel");
         cancelButton.addActionListener(e -> dialog.dispose());
@@ -288,15 +295,38 @@ public class FoodView implements View {
     private void deleteSelectedFood() {
         int selectedIndex = foodList.getSelectedIndex();
         if (selectedIndex >= 0) {
+            // Get the selected food using the same index from the model
             Food selectedFood = model.getFoodCollection().getAllFoods().get(selectedIndex);
-            int confirm = JOptionPane.showConfirmDialog(panel,
-                    "Delete " + selectedFood.getName() + "?",
-                    "Confirm Deletion", JOptionPane.YES_NO_OPTION);
-
+            
+            // Confirm deletion
+            int confirm = JOptionPane.showConfirmDialog(
+                panel,
+                "Are you sure you want to delete '" + selectedFood.getName() + "'?",
+                "Confirm Deletion",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+            );
+            
             if (confirm == JOptionPane.YES_OPTION) {
+                // Remove from both the list model and the underlying collection
+                listModel.remove(selectedIndex);
                 model.getFoodCollection().getAllFoods().remove(selectedIndex);
-                updateFoodList();
+                
+                // Optional: Show success message
+                JOptionPane.showMessageDialog(
+                    panel,
+                    "Successfully deleted '" + selectedFood.getName() + "'",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE
+                );
             }
+        } else {
+            JOptionPane.showMessageDialog(
+                panel,
+                "Please select a food to delete first",
+                "No Selection",
+                JOptionPane.WARNING_MESSAGE
+            );
         }
     }
 

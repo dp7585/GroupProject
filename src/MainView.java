@@ -21,14 +21,25 @@ public class MainView implements View {
         panel = new JPanel(new BorderLayout());
         tabbedPane = new JTabbedPane();
 
+        // Create and store views
+        FoodView foodView = (FoodView) ViewFactory.createView("food", model);
+        LogView logView = (LogView) ViewFactory.createView("log", model);
+
         // Add tabs
-        tabbedPane.addTab("Food Management", ViewFactory.createView("food", model).getPanel());
-        tabbedPane.addTab("Daily Log", ViewFactory.createView("log", model).getPanel());
+        tabbedPane.addTab("Food Management", foodView.getPanel());
+        tabbedPane.addTab("Daily Log", logView.getPanel());
+
+        // Add change listener
+        tabbedPane.addChangeListener(e -> {
+            if (tabbedPane.getSelectedIndex() == 1) { // Log tab is selected
+                logView.refreshFoodComboBox();
+            }
+        });
 
         panel.add(tabbedPane, BorderLayout.CENTER);
         frame.add(panel);
     }
-
+    
     public JPanel getPanel() {
         return panel;
     }

@@ -8,9 +8,9 @@ public class Recipe extends Food {
     private Map<Food, Double> ingredients = new HashMap<>(); // Food -> Servings
     private double servings;
 
-    public Recipe(String name, double servings2) {
+    public Recipe(String name, double servings) {
         this.name = name;
-        this.servings = servings2;
+        this.servings = servings;
     }
 
     public void addIngredient(Food food, double servings2) {
@@ -45,13 +45,12 @@ public class Recipe extends Food {
 
     public void saveToFile(String filename) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
-            writer.write("r," + this.name);
+            StringBuilder line = new StringBuilder("r," + this.name);
             for (Map.Entry<Food, Double> entry : ingredients.entrySet()) {
-                Food ingredient = entry.getKey();
-                double ingredientServings = entry.getValue();
-                writer.write("," + ingredient.getName() + "," + ingredientServings);
+                line.append(",").append(entry.getKey().getName())
+                   .append(",").append(entry.getValue());
             }
-            writer.write("\n");
+            writer.write(line.toString() + "\n");
         } catch (IOException e) {
             System.out.println("Error saving recipe to file: " + e.getMessage());
         }
@@ -62,7 +61,7 @@ public class Recipe extends Food {
         return ingredients;
     }
 
-    public Object getServings() {
+    public double getServings() {
         return servings;
     }
 }
