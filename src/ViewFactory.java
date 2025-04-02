@@ -1,3 +1,6 @@
+/**
+ * ViewFactory class for creating views based on their type
+ */
 public class ViewFactory {
     public static View createView(String type, Model model) {
         switch (type.toLowerCase()) {

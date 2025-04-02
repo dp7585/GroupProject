@@ -5,6 +5,15 @@ import java.util.List;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
+/**
+ * The FoodView class implements the View interface and provides a graphical user interface
+ * for managing food items (both basic foods and recipes). It includes functionality to:
+ * - Display a list of all foods
+ * - Add new basic foods
+ * - Create and manage recipes
+ * - View detailed nutritional information
+ * - Delete food items
+ */
 public class FoodView implements View {
     private JPanel panel;
     private JList<String> foodList;
@@ -18,6 +27,9 @@ public class FoodView implements View {
         initialize();
     }
 
+     /**
+     * Initializes the UI components and layout
+     */
     private void initialize() {
         panel = new JPanel(new BorderLayout());
         panel.setBorder(new EmptyBorder(10, 10, 10, 10));
@@ -62,6 +74,9 @@ public class FoodView implements View {
         panel.add(buttonPanel, BorderLayout.SOUTH);
     }
 
+    /**
+     * Updates the food list with the current state of the model
+     */
     private void updateFoodList() {
         listModel.clear();
         List<Food> foods = model.getFoodCollection().getAllFoods();
@@ -76,6 +91,9 @@ public class FoodView implements View {
         }
     }
 
+    /**
+     * Shows dialog for adding a new basic food item
+     */
     private void showAddBasicFoodDialog() {
         JDialog dialog = new JDialog();
         dialog.setTitle("Add New Basic Food");
@@ -118,6 +136,10 @@ public class FoodView implements View {
         dialog.setVisible(true);
     }
 
+    /**
+     * Creates the form panel for basic food entry
+     * @return Configured JPanel with all form fields
+     */
     private JPanel createBasicFoodFormPanel() {
         JPanel formPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -143,6 +165,9 @@ public class FoodView implements View {
         return formPanel;
     }
 
+    /**
+     * Helper method to add labeled fields to form panels
+     */
     private void addFormField(JPanel panel, GridBagConstraints gbc, int row, String label, JComponent field) {
         gbc.gridx = 0;
         gbc.gridy = row;
@@ -152,6 +177,9 @@ public class FoodView implements View {
         panel.add(field, gbc);
     }
 
+    /**
+     * Shows dialog for creating a new recipe
+     */
     private void showAddRecipeDialog() {
         JDialog dialog = new JDialog();
         dialog.setTitle("Create New Recipe");
@@ -268,7 +296,7 @@ public class FoodView implements View {
             dialog.dispose();
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(dialog, "Please enter valid numbers");
-            ex.printStackTrace(); // This will help debug the issue
+            ex.printStackTrace(); 
         }
     });
 
@@ -284,6 +312,9 @@ public class FoodView implements View {
         dialog.setVisible(true);
     }
 
+     /**
+     * Shows detailed nutritional information for selected food
+     */
     private void showFoodDetails() {
         int selectedIndex = foodList.getSelectedIndex();
         if (selectedIndex >= 0) {
@@ -292,6 +323,9 @@ public class FoodView implements View {
         }
     }
 
+    /**
+     * Deletes the currently selected food item after confirmation
+     */
     private void deleteSelectedFood() {
         int selectedIndex = foodList.getSelectedIndex();
         if (selectedIndex >= 0) {

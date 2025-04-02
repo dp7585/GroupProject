@@ -8,6 +8,7 @@ public class Model {
         this.dailyLog = new DailyLog();
     }
 
+    // Getter methods
     public FoodCollection getFoodCollection() {
         return foodCollection;
     }

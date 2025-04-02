@@ -13,6 +13,7 @@ public class Recipe extends Food {
         this.servings = servings;
     }
 
+    // Adds an ingredient to the recipe
     public void addIngredient(Food food, double servings2) {
         ingredients.put(food, servings2);
         saveToFile("src/foods.csv");
@@ -32,6 +33,7 @@ public class Recipe extends Food {
         return total;
     }
 
+    // Display recipe information
     public void displayInfo() {
         System.out.println(name + " - Servings: " + servings);
         System.out.println("Ingredients:");
@@ -43,6 +45,7 @@ public class Recipe extends Food {
         }
     }
 
+    // Save recipe to file
     public void saveToFile(String filename) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
             StringBuilder line = new StringBuilder("r," + this.name);
@@ -56,7 +59,7 @@ public class Recipe extends Food {
         }
     }
 
-
+    // Getters
     public Map<Food, Double> getIngredients() {
         return ingredients;
     }

@@ -1,6 +1,14 @@
 import java.awt.*;
 import javax.swing.*;
 
+/**
+ * The MainView class implements the View interface and provides a graphical interface
+ * for tracking daily food consumption. It displays:
+ * - A tab for displaying the current day's food consumption
+ * - A tab for displaying the foods and recipes
+ * - Controls for adding/removing foods
+ * - Settings for weight and calorie limits
+ */
 public class MainView implements View {
     private JFrame frame;
     private JPanel panel;
@@ -13,6 +21,10 @@ public class MainView implements View {
         initialize();
     }
 
+    /**
+     * Initializes the MainView by setting up the GUI components and adding them
+     * to the JFrame
+     */
     private void initialize() {
         frame = new JFrame("Nutrition Tracker");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

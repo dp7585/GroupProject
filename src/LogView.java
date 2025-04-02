@@ -8,6 +8,14 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
+/**
+ * The LogView class implements the View interface and provides a graphical interface
+ * for tracking daily food consumption. It displays:
+ * - A table of logged foods with nutritional information
+ * - Summary statistics of daily intake
+ * - Controls for adding/removing foods
+ * - Settings for weight and calorie limits
+ */
 public class LogView implements View {
     private JPanel panel;
     private Controller controller;
@@ -26,6 +34,9 @@ public class LogView implements View {
         initialize();
     }
 
+     /**
+     * Initializes all UI components and layout
+     */
     private void initialize() {
         panel = new JPanel(new BorderLayout());
         panel.setBorder(new EmptyBorder(10, 10, 10, 10));
@@ -99,6 +110,9 @@ public class LogView implements View {
         updateLogDisplay();
     }
 
+    /**
+     * Updates the food combo box with current food items from model
+     */
     private void updateFoodComboBox() {
         foodComboBox.removeAllItems();
         for (Food food : model.getFoodCollection().getAllFoods()) {
@@ -106,49 +120,54 @@ public class LogView implements View {
         }
     }
 
+    /**
+     * Adds the selected food to the daily log with specified servings
+     */
     private void addFoodToLog() {
-    try {
-        Food selectedFood = (Food) foodComboBox.getSelectedItem();
-        double servings = Double.parseDouble(servingsField.getText());
-
-        if (servings <= 0) {
-            JOptionPane.showMessageDialog(panel, "Servings must be greater than 0");
-            return;
+        try {
+            Food selectedFood = (Food) foodComboBox.getSelectedItem();
+            double servings = Double.parseDouble(servingsField.getText());
+    
+            if (servings <= 0) {
+                JOptionPane.showMessageDialog(panel, "Servings must be greater than 0");
+                return;
+            }
+    
+            // Store the servings for this food
+            foodServingsMap.put(selectedFood.getName(), servings);
+    
+            DailyLogFood logFood;
+            if (selectedFood instanceof FoodItem) {
+                logFood = new FoodItemAdapter((FoodItem) selectedFood);
+            } else {
+                logFood = new RecipeAdapter((Recipe) selectedFood);
+            }
+    
+            // Create a wrapper that applies servings
+            DailyLogFood scaledFood = new DailyLogFood() {
+                @Override
+                public String getName() { return logFood.getName(); }
+                @Override
+                public double getCalories() { return logFood.getCalories() * servings; }
+                @Override
+                public double getFat() { return logFood.getFat() * servings; }
+                @Override
+                public double getCarbs() { return logFood.getCarbs() * servings; }
+                @Override
+                public double getProtein() { return logFood.getProtein() * servings; }
+            };
+    
+            model.getDailyLog().addFood(new Date(), scaledFood);
+            updateLogDisplay();  // Make sure this is called after adding
+            servingsField.setText("");
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(panel, "Please enter a valid number for servings.");
         }
-
-        DailyLogFood logFood;
-        if (selectedFood instanceof FoodItem) {
-            logFood = new FoodItemAdapter((FoodItem) selectedFood);
-        } else {
-            logFood = new RecipeAdapter((Recipe) selectedFood);
-        }
-
-        // Create a wrapper that applies servings
-        DailyLogFood scaledFood = new DailyLogFood() {
-            @Override
-            public String getName() { return logFood.getName(); }
-            @Override
-            public double getCalories() { return logFood.getCalories() * servings; }
-            @Override
-            public double getFat() { return logFood.getFat() * servings; }
-            @Override
-            public double getCarbs() { return logFood.getCarbs() * servings; }
-            @Override
-            public double getProtein() { return logFood.getProtein() * servings; }
-        };
-
-        model.getDailyLog().addFood(new Date(), scaledFood);
-        updateLogDisplay();
-        servingsField.setText("");
-        
-        // Force UI update
-        panel.revalidate();
-        panel.repaint();
-    } catch (NumberFormatException e) {
-        JOptionPane.showMessageDialog(panel, "Please enter a valid number for servings.");
     }
-}
 
+    /**
+     * Removes the selected food from the daily log
+     */
     private void removeSelectedFood() {
         int selectedRow = logTable.getSelectedRow();
         if (selectedRow >= 0) {
@@ -161,6 +180,9 @@ public class LogView implements View {
         }
     }
 
+    /**
+     * Refreshes the food combo box with current food items
+     */
     public void refreshFoodComboBox() {
     foodComboBox.removeAllItems();
     for (Food food : model.getFoodCollection().getAllFoods()) {
@@ -168,6 +190,9 @@ public class LogView implements View {
     }
 }
 
+/**
+     * Updates the log display with current data from model
+     */
 private void updateLogDisplay() {
     tableModel.setRowCount(0);
     Date today = new Date();
@@ -228,6 +253,7 @@ private void updateLogDisplay() {
         this.controller = controller;
     }
 
+    @Override
     public JPanel getPanel() {
         return panel;
     }

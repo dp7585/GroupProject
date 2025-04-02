@@ -9,6 +9,7 @@
         this.foodItem = foodItem;
     }
 
+    // Getter methods for the food item attributes
     @Override
     public String getName(){
         return foodItem.getName();

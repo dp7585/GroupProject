@@ -35,6 +35,7 @@ public class FoodItem extends Food  implements DailyLogFood{
         System.out.println(name + " - Calories: " + calories + " | Fat: " + fat + "g | Carbs: " + carbs + "g | Protein: " + protein + "g");
     }
 
+    // Getter methods for FoodItem class
     @Override
     public String getName(){
         return name;
