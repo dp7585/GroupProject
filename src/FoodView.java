@@ -77,7 +77,7 @@ public class FoodView implements View {
     /**
      * Updates the food list with the current state of the model
      */
-    private void updateFoodList() {
+    public void updateFoodList() {
         listModel.clear();
         List<Food> foods = model.getFoodCollection().getAllFoods();
         for (Food food : foods) {
