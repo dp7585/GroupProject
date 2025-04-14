@@ -33,10 +33,10 @@ public class FoodDetailsDialog extends JDialog {
         // Handle display for basic FoodItems
         if (food instanceof FoodItem) {
             FoodItem item = (FoodItem)food;
-            detailsArea.append(String.format("Calories: %.1f\n", item.getCalories()));
-            detailsArea.append(String.format("Fat: %.1fg\n", item.getFat()));
-            detailsArea.append(String.format("Carbs: %.1fg\n", item.getCarbs()));
-            detailsArea.append(String.format("Protein: %.1fg\n", item.getProtein()));
+            detailsArea.append(String.format("Calories: %.1f\n", item.getNutrition("calories")));
+            detailsArea.append(String.format("Fat: %.1fg\n", item.getNutrition("fat")));
+            detailsArea.append(String.format("Carbs: %.1fg\n", item.getNutrition("carbs")));
+            detailsArea.append(String.format("Protein: %.1fg\n", item.getNutrition("protein")));
         } 
         // Handle display for Recipes
         else if (food instanceof Recipe) {

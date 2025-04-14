@@ -22,7 +22,7 @@ import java.util.*;
 public class DailyLog {
 
     // a map to store logs. Each date will have list of food entries
-    private Map<Date, List<DailyLogFood>> logEntries = new HashMap<>();
+    private Map<Date, List<Food>> logEntries = new HashMap<>();
     private Map<Date, Integer> calorieLimits = new HashMap<>();
     private Map<Date, Double> weightLogs = new HashMap<>();
     private static final String LOG_FILE = "src/log.csv"; // adding to log the info to the file with strings
@@ -37,7 +37,7 @@ public class DailyLog {
     /**
      * Adds food item to the daily log
      */
-    public void addFood(Date date, DailyLogFood food) {
+    public void addFood(Date date, Food food) {
         logEntries.putIfAbsent(date, new ArrayList<>());
         logEntries.get(date).add(food);
         saveLogToCSV(); // saves straight away after adding
@@ -69,12 +69,12 @@ public class DailyLog {
         double totalCalories = 0;
         double totalFat = 0, totalCarbs = 0, totalProtein = 0;
 
-        for (DailyLogFood food : logEntries.get(date)) {
-            System.out.println(food.getName() + " - Calories: " + food.getCalories());
-            totalCalories += food.getCalories();
-            totalFat += food.getFat();
-            totalCarbs += food.getCarbs();
-            totalProtein += food.getProtein();
+        for (Food food : logEntries.get(date)) {
+            System.out.println(food.getName() + " - Calories: " + food.getNutrition("calories"));
+            totalCalories += food.getNutrition("calories");
+            totalFat += food.getNutrition("fat");
+            totalCarbs += food.getNutrition("carbs");
+            totalProtein += food.getNutrition("protein");
         }
 
         // show the calorie limit warning..
@@ -110,13 +110,13 @@ public class DailyLog {
             return;
         }
 
-        List<DailyLogFood> foods = logEntries.get(date);
+        List<Food> foods = logEntries.get(date);
         boolean removed = false;
 
-        Iterator<DailyLogFood> iterator = foods.iterator();
+        Iterator<Food> iterator = foods.iterator();
 
         while (iterator.hasNext()) {
-            DailyLogFood food = iterator.next();
+            Food food = iterator.next();
             if (food.getName().equalsIgnoreCase(foodName)) {
                 iterator.remove();
                 removed = true;
@@ -155,9 +155,9 @@ public class DailyLog {
             }
 
             // save food log entries
-            for (Map.Entry<Date, List<DailyLogFood>> entry : logEntries.entrySet()) {
+            for (Map.Entry<Date, List<Food>> entry : logEntries.entrySet()) {
                 Date date = entry.getKey();
-                for (DailyLogFood food : entry.getValue()) {
+                for (Food food : entry.getValue()) {
                     writer.write(String.format("%tY,%tm,%td,f,%s,1.0\n", date, date, date, food.getName()));
                 }
             }
@@ -208,7 +208,7 @@ public class DailyLog {
                         case "f":
                             if (parts.length >= 6 && !parts[4].trim().isEmpty()) {
                                 String foodName = parts[4].trim();
-                                DailyLogFood food = new FoodItem(foodName, 0, 0, 0, 0);
+                                Food food = new FoodItem(foodName, 0, 0, 0, 0);
                                 logEntries.putIfAbsent(date, new ArrayList<>());
                                 logEntries.get(date).add(food);
                             }
@@ -229,7 +229,7 @@ public class DailyLog {
         return logEntries.containsKey(date);
     }
 
-    public List<DailyLogFood> getLogEntriesForDate(Date date) {
+    public List<Food> getLogEntriesForDate(Date date) {
         return logEntries.getOrDefault(date, new ArrayList<>());
     }
 

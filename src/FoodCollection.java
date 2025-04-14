@@ -134,10 +134,10 @@ public class FoodCollection {
                     FoodItem item = (FoodItem) food;
                     writer.write(String.format(usLocale, "b,%s,%.1f,%.1f,%.1f,%.1f%n",
                         item.getName(),
-                        item.getCalories(),
-                        item.getFat(),
-                        item.getCarbs(),
-                        item.getProtein()));
+                        item.getNutrition("calories"),
+                        item.getNutrition("fat"),
+                        item.getNutrition("carbs"),
+                        item.getNutrition("protein")));
                 }
             }
             
