@@ -16,7 +16,7 @@ public class Recipe extends Food {
     // Adds an ingredient to the recipe
     public void addIngredient(Food food, double servings2) {
         ingredients.put(food, servings2);
-        saveToFile("src/foods.csv");
+        saveToFile("data/foods.csv");
     }
 
     public double getNutrition(String nutrition) {

@@ -22,7 +22,7 @@ public class FoodCollection {
      * The data file should be in CSV format at "src/foods.csv".
      */
     public FoodCollection() {
-        loadFromFile("src/foods.csv");
+        loadFromFile("data/foods.csv");
     }
 
     /**
@@ -33,7 +33,7 @@ public class FoodCollection {
     public void addFood(Food food) {
         if (!foodItems.contains(food)) {  // Prevent duplicates
             foodItems.add(food);
-            saveToFile(foodItems, "src/foods.csv");
+            saveToFile(foodItems, "data/foods.csv");
         }
     }
 

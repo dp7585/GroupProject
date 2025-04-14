@@ -25,7 +25,7 @@ public class DailyLog {
     private Map<Date, List<Food>> logEntries = new HashMap<>();
     private Map<Date, Integer> calorieLimits = new HashMap<>();
     private Map<Date, Double> weightLogs = new HashMap<>();
-    private static final String LOG_FILE = "src/log.csv"; // adding to log the info to the file with strings
+    private static final String LOG_FILE = "data/log.csv"; // adding to log the info to the file with strings
 
     public DailyLog() {
         logEntries = new HashMap<>();
