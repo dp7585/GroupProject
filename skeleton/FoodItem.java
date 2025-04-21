@@ -1,4 +1,4 @@
-public class FoodItem extends Food {
+public class FoodItem extends Food  implements DailyLogFood{
     private double calories;
     private double fat;
     private double carbs;
@@ -33,5 +33,30 @@ public class FoodItem extends Food {
     @Override
     public void displayInfo() {
         System.out.println(name + " - Calories: " + calories + " | Fat: " + fat + "g | Carbs: " + carbs + "g | Protein: " + protein + "g");
+    }
+
+    @Override
+    public String getName(){
+        return name;
+    }
+
+    @Override
+    public double getCalories(){
+        return calories;
+    }
+
+    @Override
+    public double getFat(){
+        return fat;
+    }
+
+    @Override
+    public double getCarbs(){
+        return carbs;
+    }
+
+    @Override
+    public double getProtein(){
+        return protein;
     }
 }

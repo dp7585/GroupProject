@@ -3,7 +3,7 @@
  * This will make sure that DailyLog can treat them both
  */
 
-public interface DailyLogFood {
+ public interface DailyLogFood {
     String getName();
     double getCalories();
     double getProtein();

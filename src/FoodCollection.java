@@ -8,21 +8,40 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * Manages a collection of Food items, including both basic foods and recipes.
+ * Provides functionality to load from and save to a CSV file, add new foods,
+ * and retrieve food items. Implements persistent storage of food data.
+ */
 public class FoodCollection {
+    // List to store all food items (both basic foods and recipes)
     private List<Food> foodItems = new ArrayList<>();
 
-    // loads food when the program starts
+    /**
+     * Constructs a FoodCollection and automatically loads food data from file.
+     * The data file should be in CSV format at "src/foods.csv".
+     */
     public FoodCollection() {
-        loadFromFile("src/foods.csv");
+        loadFromFile("data/foods.csv");
     }
 
+    /**
+     * Adds a new food item to the collection if it doesn't already exist.
+     * Automatically saves the updated collection to file.
+     * @param food The food item to add (either FoodItem or Recipe)
+     */
     public void addFood(Food food) {
         if (!foodItems.contains(food)) {  // Prevent duplicates
             foodItems.add(food);
-            saveToFile(foodItems, "src/foods.csv");
+            saveToFile(foodItems, "data/foods.csv");
         }
     }
 
+    /**
+     * Retrieves a food item by name (case-insensitive).
+     * @param name The name of the food to find
+     * @return The Food object if found, null otherwise
+     */
     public Food getFood(String name) {
         for (Food food : foodItems) {
             if (food.getName().equalsIgnoreCase(name)) {
@@ -32,7 +51,13 @@ public class FoodCollection {
         return null;
     }
 
-    // Load foods from the CSV file
+    /**
+     * Loads food data from a CSV file, processing both basic foods and recipes.
+     * File format:
+     * - Basic foods: b,name,calories,fat,carbs,protein
+     * - Recipes: r,name,ingredient1,servings1,ingredient2,servings2,...
+     * @param filename The path to the CSV file containing food data
+     */
     private void loadFromFile(String filename) {
         List<Food> tempBasicFoods = new ArrayList<>();
         List<String> recipeLines = new ArrayList<>();
@@ -47,7 +72,7 @@ public class FoodCollection {
                 if (fields.length < 2) continue;
     
                 if (fields[0].equals("b") && fields.length == 6) {
-                    // Basic food
+                    // Process basic food entry
                     String name = fields[1].trim();
                     double calories = Double.parseDouble(fields[2].trim());
                     double fat = Double.parseDouble(fields[3].trim());
@@ -57,21 +82,21 @@ public class FoodCollection {
                     FoodItem food = new FoodItem(name, calories, fat, carbs, protein);
                     tempBasicFoods.add(food);
                 } else if (fields[0].equals("r") && fields.length >= 4) {
-                    // Recipe - store for later processing
+                    // Store recipe lines for processing after basic foods are loaded
                     recipeLines.add(line);
                 }
             }
     
-            // Add all basic foods first
+            // Add all basic foods first (recipes may depend on them)
             this.foodItems.addAll(tempBasicFoods);
     
-            // Process recipes
+            // Process recipes now that all basic foods are available
             for (String recipeLine : recipeLines) {
                 String[] fields = recipeLine.split(",");
                 String name = fields[1].trim();
                 Recipe recipe = new Recipe(name, 1.0); // Default 1 serving
     
-                // Process ingredients (pairs of name,servings)
+                // Process ingredient pairs (name, servings)
                 for (int i = 2; i < fields.length; i += 2) {
                     if (i + 1 >= fields.length) break;
     
@@ -91,49 +116,66 @@ public class FoodCollection {
         }
     }
 
- public void saveToFile(List<Food> foodItems, String filename) {
-    // Create US locale for consistent decimal formatting
-    Locale usLocale = new Locale("en", "US");
-    
-    try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
-        // First save all basic foods
-        for (Food food : foodItems) {
-            if (food instanceof FoodItem) {
-                FoodItem item = (FoodItem) food;
-                writer.write(String.format(usLocale, "b,%s,%.1f,%.1f,%.1f,%.1f%n",
-                    item.getName(),
-                    item.getCalories(),
-                    item.getFat(),
-                    item.getCarbs(),
-                    item.getProtein()));
-            }
-        }
+    /**
+     * Saves all food items to a CSV file in the specified format.
+     * Basic foods are saved first, followed by recipes.
+     * Uses US locale for consistent decimal formatting.
+     * @param foodItems The list of food items to save
+     * @param filename The destination file path
+     */
+    public void saveToFile(List<Food> foodItems, String filename) {
+        // Create US locale for consistent decimal formatting
+        Locale usLocale = new Locale("en", "US");
         
-        // Then save all recipes
-        for (Food food : foodItems) {
-            if (food instanceof Recipe) {
-                Recipe recipe = (Recipe) food;
-                StringBuilder sb = new StringBuilder();
-                sb.append("r,").append(recipe.getName());
-                
-                for (Map.Entry<Food, Double> entry : recipe.getIngredients().entrySet()) {
-                    sb.append(",").append(entry.getKey().getName())
-                      .append(",")
-                      .append(String.format(usLocale, "%.1f", entry.getValue()));
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+            // First save all basic foods
+            for (Food food : foodItems) {
+                if (food instanceof FoodItem) {
+                    FoodItem item = (FoodItem) food;
+                    writer.write(String.format(usLocale, "b,%s,%.1f,%.1f,%.1f,%.1f%n",
+                        item.getName(),
+                        item.getNutrition("calories"),
+                        item.getNutrition("fat"),
+                        item.getNutrition("carbs"),
+                        item.getNutrition("protein")));
                 }
-                
-                writer.write(sb.toString() + "\n");
             }
+            
+            // Then save all recipes
+            for (Food food : foodItems) {
+                if (food instanceof Recipe) {
+                    Recipe recipe = (Recipe) food;
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("r,").append(recipe.getName());
+                    
+                    // Append each ingredient and its servings
+                    for (Map.Entry<Food, Double> entry : recipe.getIngredients().entrySet()) {
+                        sb.append(",").append(entry.getKey().getName())
+                          .append(",")
+                          .append(String.format(usLocale, "%.1f", entry.getValue()));
+                    }
+                    
+                    writer.write(sb.toString() + "\n");
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error saving food file: " + e.getMessage());
         }
-    } catch (IOException e) {
-        System.err.println("Error saving food file: " + e.getMessage());
     }
-}
 
+    /**
+     * Returns a copy of all food items in the collection.
+     * @return A new List containing all food items
+     */
     public List<Food> getAllFoods() {
         return new ArrayList<>(foodItems); // Return a copy for encapsulation
     }
 
+    /**
+     * Finds a food item by name (case-insensitive search).
+     * @param name The name of the food to find
+     * @return The matching Food object, or null if not found
+     */
     public Food findFoodByName(String name) {
         for (Food food : foodItems) {
             if (food.getName().equalsIgnoreCase(name)) {
