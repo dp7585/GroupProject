@@ -26,6 +26,7 @@ public class DailyLog {
     private Map<Date, Integer> calorieLimits = new HashMap<>();
     private Map<Date, Double> weightLogs = new HashMap<>();
     private static final String LOG_FILE = "data/log.csv"; // adding to log the info to the file with strings
+    @SuppressWarnings("FieldMayBeFinal")
     private FoodCollection foodCollection;
 
     public DailyLog(FoodCollection foodCollection) {
@@ -172,6 +173,7 @@ public class DailyLog {
     /**
      * load log data from CSV (Food, Weight, Calorie limits)
      */
+    @SuppressWarnings("UnnecessaryContinue")
     private void loadLogFromCSV() {
         File file = new File(LOG_FILE);
         if (!file.exists())
