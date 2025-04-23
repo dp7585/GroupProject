@@ -6,10 +6,12 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 
 /**
- * The LogView class implements the View interface and provides a graphical interface
+ * The LogView class implements the View interface and provides a graphical
+ * interface
  * for tracking daily food consumption. It displays:
  * - A table of logged foods with nutritional information
  * - Summary statistics of daily intake
@@ -25,7 +27,11 @@ public class LogView implements View {
     private JComboBox<Food> foodComboBox;
     private JTextField servingsField;
     private JLabel calorieStatusLabel;
-    private JLabel nutritionBreakdownLabel;
+    public JLabel nutritionBreakdownLabel;
+    private JTable exerciseTable;
+    private DefaultTableModel exerciseTableModel;
+    private JComboBox<Exercise> exerciseComboBox;
+    private JTextField exerciseMinutesField;
 
     private Map<String, Double> foodServingsMap = new HashMap<>();
 
@@ -34,7 +40,7 @@ public class LogView implements View {
         initialize();
     }
 
-     /**
+    /**
      * Initializes all UI components and layout
      */
     private void initialize() {
@@ -98,6 +104,38 @@ public class LogView implements View {
         settingsPanel.add(calorieLimitField);
         settingsPanel.add(updateSettingsButton);
 
+        // Exercise panel
+        JPanel exercisePanel = new JPanel(new BorderLayout());
+        exercisePanel.setBorder(new TitledBorder("Exercise Log"));
+
+        // Exercise table
+        exerciseTableModel = new DefaultTableModel(
+            new Object[]{"Exercise", "Minutes", "Calories Burned"}, 0);
+        exerciseTable = new JTable(exerciseTableModel);
+        JScrollPane exerciseScrollPane = new JScrollPane(exerciseTable);
+
+        // Exercise input panel
+        JPanel exerciseInputPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        exerciseComboBox = new JComboBox<>();
+        updateExerciseComboBox();
+        
+        exerciseMinutesField = new JTextField(5);
+        JButton addExerciseButton = new JButton("Add Exercise");
+        addExerciseButton.addActionListener(e -> addExerciseToLog());
+        
+        JButton removeExerciseButton = new JButton("Remove Selected");
+        removeExerciseButton.addActionListener(e -> removeSelectedExercise());
+
+        exerciseInputPanel.add(new JLabel("Exercise:"));
+        exerciseInputPanel.add(exerciseComboBox);
+        exerciseInputPanel.add(new JLabel("Minutes:"));
+        exerciseInputPanel.add(exerciseMinutesField);
+        exerciseInputPanel.add(addExerciseButton);
+        exerciseInputPanel.add(removeExerciseButton);
+
+        exercisePanel.add(exerciseScrollPane, BorderLayout.CENTER);
+        exercisePanel.add(exerciseInputPanel, BorderLayout.SOUTH);
+
         // Combine panels
         JPanel southPanel = new JPanel(new BorderLayout());
         southPanel.add(inputPanel, BorderLayout.NORTH);
@@ -106,6 +144,7 @@ public class LogView implements View {
         panel.add(tableScrollPane, BorderLayout.CENTER);
         panel.add(summaryPanel, BorderLayout.NORTH);
         panel.add(southPanel, BorderLayout.SOUTH);
+        panel.add(exercisePanel, BorderLayout.EAST);
 
         updateLogDisplay();
     }
@@ -127,38 +166,16 @@ public class LogView implements View {
         try {
             Food selectedFood = (Food) foodComboBox.getSelectedItem();
             double servings = Double.parseDouble(servingsField.getText());
-    
+
             if (servings <= 0) {
                 JOptionPane.showMessageDialog(panel, "Servings must be greater than 0");
                 return;
             }
-    
+
             // Store the servings for this food
             foodServingsMap.put(selectedFood.getName(), servings);
-    
-            DailyLogFood logFood;
-            if (selectedFood instanceof FoodItem) {
-                logFood = new FoodItemAdapter((FoodItem) selectedFood);
-            } else {
-                logFood = new RecipeAdapter((Recipe) selectedFood);
-            }
-    
-            // Create a wrapper that applies servings
-            DailyLogFood scaledFood = new DailyLogFood() {
-                @Override
-                public String getName() { return logFood.getName(); }
-                @Override
-                public double getCalories() { return logFood.getCalories() * servings; }
-                @Override
-                public double getFat() { return logFood.getFat() * servings; }
-                @Override
-                public double getCarbs() { return logFood.getCarbs() * servings; }
-                @Override
-                public double getProtein() { return logFood.getProtein() * servings; }
-            };
-    
-            model.getDailyLog().addFood(new Date(), scaledFood);
-            updateLogDisplay();  // Make sure this is called after adding
+
+            updateLogDisplay(); // Make sure this is called after adding
             servingsField.setText("");
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(panel, "Please enter a valid number for servings.");
@@ -173,7 +190,7 @@ public class LogView implements View {
         if (selectedRow >= 0) {
             String foodName = (String) tableModel.getValueAt(selectedRow, 0);
             model.getDailyLog().deleteLog(new Date(), foodName);
-            foodServingsMap.remove(foodName);  // Remove from our local map
+            foodServingsMap.remove(foodName); // Remove from our local map
             updateLogDisplay();
         } else {
             JOptionPane.showMessageDialog(panel, "Please select a food to remove");
@@ -184,41 +201,93 @@ public class LogView implements View {
      * Refreshes the food combo box with current food items
      */
     public void refreshFoodComboBox() {
-    foodComboBox.removeAllItems();
-    for (Food food : model.getFoodCollection().getAllFoods()) {
-        foodComboBox.addItem(food);
+        foodComboBox.removeAllItems();
+        for (Food food : model.getFoodCollection().getAllFoods()) {
+            foodComboBox.addItem(food);
+        }
     }
-}
 
-/**
+    private void updateExerciseComboBox() {
+        exerciseComboBox.removeAllItems();
+        // This would actually come from the model's exercise manager
+        // For now we'll just add some example exercises
+        exerciseComboBox.addItem(new Exercise("Running", 600));
+        exerciseComboBox.addItem(new Exercise("Cycling", 500));
+        exerciseComboBox.addItem(new Exercise("Swimming", 400));
+    }
+
+    private void addExerciseToLog() {
+        try {
+            Exercise exercise = (Exercise) exerciseComboBox.getSelectedItem();
+            double minutes = Double.parseDouble(exerciseMinutesField.getText());
+            
+            if (minutes <= 0) {
+                JOptionPane.showMessageDialog(panel, "Minutes must be greater than 0");
+                return;
+            }
+            
+            // Calculate calories burned based on user's weight
+            double weight = model.getDailyLog().getWeight(new Date());
+            double caloriesBurned = exercise.getCaloriesPerHour() * (weight / 100) * (minutes / 60);
+            
+            exerciseTableModel.addRow(new Object[]{
+                exercise.getName(),
+                String.format("%.1f", minutes),
+                String.format("%.1f", caloriesBurned)
+            });
+            
+            exerciseMinutesField.setText("");
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(panel, "Please enter valid minutes");
+        }
+    }
+
+    private void removeSelectedExercise() {
+        int selectedRow = exerciseTable.getSelectedRow();
+        if (selectedRow >= 0) {
+            exerciseTableModel.removeRow(selectedRow);
+        } else {
+            JOptionPane.showMessageDialog(panel, "Please select an exercise to remove");
+        }
+    }
+
+    /**
      * Updates the log display with current data from model
      */
-private void updateLogDisplay() {
-    tableModel.setRowCount(0);
-    Date today = new Date();
+    public void updateLogDisplay() {
+        tableModel.setRowCount(0);
+        Date today = model.getCurrentDate(); // Get current date from model
 
-    double totalCalories = 0;
-    double totalFat = 0, totalCarbs = 0, totalProtein = 0;
+        double totalCalories = 0;
+        double totalFat = 0, totalCarbs = 0, totalProtein = 0;
 
-    for (DailyLogFood food : model.getDailyLog().getLogEntriesForDate(today)) {
-        // Get servings from our local map (default to 1.0 if not found)
-        double servings = foodServingsMap.getOrDefault(food.getName(), 1.0);
-        
-        Object[] row = {
-            food.getName(),
-            servings,
-            food.getCalories() * servings,
-            food.getFat() * servings,
-            food.getCarbs() * servings,
-            food.getProtein() * servings
-        };
-        tableModel.addRow(row);
-
-        totalCalories += food.getCalories() * servings;
-        totalFat += food.getFat() * servings;
-        totalCarbs += food.getCarbs() * servings;
-        totalProtein += food.getProtein() * servings;
-    }
+        // Calculate totals from food servings map
+        for (Map.Entry<String, Double> entry : foodServingsMap.entrySet()) {
+            String foodName = entry.getKey();
+            double servings = entry.getValue();
+            Food food = model.getFoodCollection().findFoodByName(foodName);
+            
+            if (food != null) {
+                double calories = food.getNutrition("calories") * servings;
+                double fat = food.getNutrition("fat") * servings;
+                double carbs = food.getNutrition("carbs") * servings;
+                double protein = food.getNutrition("protein") * servings;
+                
+                tableModel.addRow(new Object[]{
+                    food.getName(),
+                    String.format("%.1f", servings),
+                    String.format("%.1f", calories),
+                    String.format("%.1f", fat),
+                    String.format("%.1f", carbs),
+                    String.format("%.1f", protein)
+                });
+                
+                totalCalories += calories;
+                totalFat += fat;
+                totalCarbs += carbs;
+                totalProtein += protein;
+            }
+        }
 
         // Update summary labels
         int calorieLimit = model.getDailyLog().getCalorieLimit(today);
@@ -236,13 +305,18 @@ private void updateLogDisplay() {
             int fatPercent = (int) Math.round((totalFat / totalMacros) * 100);
             int carbsPercent = (int) Math.round((totalCarbs / totalMacros) * 100);
             int proteinPercent = 100 - fatPercent - carbsPercent; // Ensure total 100%
-
+    
             nutritionBreakdownLabel.setText(String.format(
                     "Nutrition Breakdown: %d%% Fat | %d%% Carbs | %d%% Protein",
                     fatPercent, carbsPercent, proteinPercent));
+            
+            // Update the graph through controller
+            if (controller != null) {
+                controller.updateNutritionGraph(fatPercent, carbsPercent, proteinPercent);
+            }
         }
     }
-
+    
     @Override
     public void display() {
         // Handled by MainView

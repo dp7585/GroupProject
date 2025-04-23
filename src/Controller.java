@@ -1,3 +1,6 @@
+
+import java.util.Date;
+
 /**
  * The Controller class acts as an intermediary between the Model and View
  * in the MVC (Model-View-Controller). It handles user input
@@ -8,7 +11,9 @@ public class Controller {
     private Model model;
     
     // Reference to the View component
-    private View view;
+    private MainView mainView;
+
+    private LogView logView;
 
     /**
      * Constructs a Controller with specified Model and View.
@@ -17,11 +22,10 @@ public class Controller {
      * @param model The Model component of the MVC pattern
      * @param view The View component of the MVC pattern
      */
-    public Controller(Model model, View view) {
+    public Controller(Model model) {
         this.model = model;
-        this.view = view;
-        // Set this controller as the View's controller
-        this.view.setController(this);
+        this.mainView = new MainView(model);
+        this.mainView.setController(this);
     }
 
     /**
@@ -29,6 +33,26 @@ public class Controller {
      * This typically starts the user interface and makes it visible.
      */
     public void initialize() {
-        view.display();
+        mainView.display();
     }
+
+    public void loadDateData(Date date) {
+        // Update model with selected date
+        model.setCurrentDate(date);
+        
+        // Refresh views
+        if (mainView != null) {
+            mainView.updateNutritionGraph();
+        }
+        if (logView != null) {
+            logView.updateLogDisplay();
+        }
+    }
+    
+    public void updateNutritionGraph(int fat, int carbs, int protein) {
+        if (mainView != null) {
+            mainView.updateNutritionGraph(fat, carbs, protein);
+        }
+    }
+    
 }

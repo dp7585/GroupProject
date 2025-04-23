@@ -7,11 +7,8 @@ public class NutritionTrackerApp {
         // Create and initialize the model
         Model model = new Model();
         
-        // Create the main view using factory
-        View mainView = ViewFactory.createView("main", model);
-        
         // Create the controller
-        Controller controller = new Controller(model, mainView);
+        Controller controller = new Controller(model);
         
         // Start the application
         controller.initialize();

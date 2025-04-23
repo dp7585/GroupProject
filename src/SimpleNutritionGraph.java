@@ -1,20 +1,29 @@
 import java.awt.*;
-import java.awt.geom.Rectangle2D;
 import javax.swing.*;
 
 public class SimpleNutritionGraph extends JPanel {
-    private double fatPercent = 0;
-    private double carbsPercent = 0;
-    private double proteinPercent = 0;
+    private int fatPercent = 0;
+    private int carbsPercent = 0;
+    private int proteinPercent = 0;
 
     public SimpleNutritionGraph() {
         setPreferredSize(new Dimension(300, 200));
+        setBorder(BorderFactory.createTitledBorder("Nutrition Breakdown"));
     }
 
     public void updateData(double fat, double carbs, double protein) {
-        this.fatPercent = fat;
-        this.carbsPercent = carbs;
-        this.proteinPercent = protein;
+        // Ensure percentages add up to 100
+        double total = fat + carbs + protein;
+        if (total != 0) {  // Only calculate if we have data
+            // Calculate percentages
+            fatPercent = (int) Math.round((fat / total) * 100);
+            carbsPercent = (int) Math.round((carbs / total) * 100);
+            proteinPercent = 100 - fatPercent - carbsPercent; // Ensure total is 100%
+        } else {
+            fatPercent = 0;
+            carbsPercent = 0;
+            proteinPercent = 0;
+        }
         repaint();
     }
 
@@ -24,30 +33,33 @@ public class SimpleNutritionGraph extends JPanel {
         Graphics2D g2 = (Graphics2D) g;
 
         int width = getWidth();
-        int height = getHeight();
-        int barHeight = 20;
-        int padding = 30;
+        int height = getHeight() - 30;
+        int barWidth = 60;
+        int padding = 20;
+        int startX = (width - (3 * barWidth + 2 * padding)) / 2;
+        int startY = 30;
 
-        // Draw fat bar
-        g2.setColor(Color.RED);
-        double fatWidth = (fatPercent / 100) * (width - 50);
-        g2.fill(new Rectangle2D.Double(30, padding, fatWidth, barHeight));
-        g2.drawString("Fat: " + (int) fatPercent + "%", 5, padding + barHeight/2 + 5);
+        // Draw fat bar (red)
+        drawBar(g2, startX, startY, barWidth, height, fatPercent, Color.RED, "Fat");
 
-        // Draw carbs bar
-        g2.setColor(Color.BLUE);
-        double carbsWidth = (carbsPercent / 100) * (width - 50);
-        g2.fill(new Rectangle2D.Double(30, padding * 2, carbsWidth, barHeight));
-        g2.drawString("Carbs: " + (int) carbsPercent + "%", 5, padding * 2 + barHeight/2 + 5);
+        // Draw carbs bar (green)
+        drawBar(g2, startX + barWidth + padding, startY, barWidth, height, carbsPercent, Color.GREEN, "Carbs");
 
-        // Draw protein bar
-        g2.setColor(Color.GREEN);
-        double proteinWidth = (proteinPercent / 100) * (width - 50);
-        g2.fill(new Rectangle2D.Double(30, padding * 3, proteinWidth, barHeight));
-        g2.drawString("Protein: " + (int) proteinPercent + "%", 5, padding * 3 + barHeight/2 + 5);
+        // Draw protein bar (blue)
+        drawBar(g2, startX + 2 * (barWidth + padding), startY, barWidth, height, proteinPercent, Color.BLUE, "Protein");
+    }
 
-        // Draw title
+    private void drawBar(Graphics2D g2, int x, int y, int width, int totalHeight, int percent, Color color, String label) {
+        int barHeight = (int) (percent / 100.0 * (totalHeight - 40));
+        g2.setColor(color);
+        g2.fillRect(x, y + (totalHeight - 40 - barHeight), width, barHeight);
+        
         g2.setColor(Color.BLACK);
-        g2.drawString("Nutrition Breakdown", width/2 - 50, 15);
+        // Draw label at bottom
+        g2.drawString(label, x, y + totalHeight - 20);
+        // Draw percentage at top of bar
+        if (barHeight > 15) {
+            g2.drawString(percent + "%", x, y + totalHeight - 40 - barHeight - 5);
+        }
     }
 }

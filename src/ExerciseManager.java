@@ -3,7 +3,7 @@ import java.util.*;
 
 public class ExerciseManager {
     // Path to file
-    private static final String FILE_NAME = "./data/exercise.csv";
+    private static final String FILE_NAME = "data/exercise.csv";
     private final Map<String, Exercise> exerciseMap = new HashMap<>();
 
     // Load exercises from CSV file

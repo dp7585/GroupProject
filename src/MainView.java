@@ -1,5 +1,8 @@
 import java.awt.*;
+import java.util.Date;
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 /**
  * The MainView class implements the View interface and provides a graphical interface
@@ -15,9 +18,13 @@ public class MainView implements View {
     private Controller controller;
     private Model model;
     private JTabbedPane tabbedPane;
+    private SimpleNutritionGraph graph;
+    private LogView logView;
+    private JSpinner dateSpinner;
 
     public MainView(Model model) {
         this.model = model;
+        this.logView = new LogView(model);
         initialize();
     }
 
@@ -29,17 +36,19 @@ public class MainView implements View {
         frame = new JFrame("Nutrition Tracker");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(800, 600);
+        frame.setLocationRelativeTo(null);
 
         panel = new JPanel(new BorderLayout());
         tabbedPane = new JTabbedPane();
 
         // Create and store views
-        FoodView foodView = (FoodView) ViewFactory.createView("food", model);
-        LogView logView = (LogView) ViewFactory.createView("log", model);
+        FoodView foodView = new FoodView(model);
+        LogView logView = new LogView(model);
+        graph = new SimpleNutritionGraph();
 
         // Add tabs
         tabbedPane.addTab("Food Management", foodView.getPanel());
-        tabbedPane.addTab("Daily Log", logView.getPanel());
+        tabbedPane.addTab("Daily Log", createLogPanel(logView));
 
         // Add change listener
         tabbedPane.addChangeListener(e -> {
@@ -48,8 +57,93 @@ public class MainView implements View {
             }
         });
 
+
+        // Add date selector panel at the top
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        dateSpinner = new JSpinner(new SpinnerDateModel());
+        JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(dateSpinner, "yyyy-MM-dd");
+        dateSpinner.setEditor(dateEditor);
+        dateSpinner.setValue(new Date()); // Set to current date
+        
+        JButton dateButton = new JButton("Load Date");
+        dateButton.addActionListener(e -> loadSelectedDate());
+        
+        topPanel.add(new JLabel("Select Date:"));
+        topPanel.add(dateSpinner);
+        topPanel.add(dateButton);
+        
+        panel.add(topPanel, BorderLayout.NORTH);
+        panel.add(tabbedPane, BorderLayout.CENTER);
+        
+        // Add change listener to refresh when tabs change
+        tabbedPane.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                if (tabbedPane.getSelectedIndex() == 1) { // Log tab
+                    loadSelectedDate();
+                }
+            }
+        });
+
         panel.add(tabbedPane, BorderLayout.CENTER);
         frame.add(panel);
+    }
+
+    private void loadSelectedDate() {
+        Date selectedDate = (Date) dateSpinner.getValue();
+        // Tell controller to load data for this date
+        if (controller != null) {
+            controller.loadDateData(selectedDate);
+        }
+    }
+
+    private JPanel createLogPanel(LogView logView) {
+        JPanel logPanel = new JPanel(new BorderLayout());
+        
+        // Add the log view to the center
+        logPanel.add(logView.getPanel(), BorderLayout.CENTER);
+        
+        // Add the nutrition graph to the south
+        logPanel.add(graph, BorderLayout.SOUTH);
+        
+        return logPanel;
+    }
+
+   /**
+     * Updates the nutrition graph with current data
+     */
+    public void updateNutritionGraph() {
+        // Calculate totals from the log view
+        double totalFat = 0;
+        double totalCarbs = 0;
+        double totalProtein = 0;
+        
+        // Get the values from the log view's nutrition breakdown label
+        String breakdownText = logView.nutritionBreakdownLabel.getText();
+        if (breakdownText != null && !breakdownText.equals(" ")) {
+            try {
+                // Parse the percentages from the label text
+                String[] parts = breakdownText.split("\\|");
+                String fatPart = parts[0].trim();
+                String carbsPart = parts[1].trim();
+                String proteinPart = parts[2].trim();
+                
+                totalFat = Double.parseDouble(fatPart.split("%")[0].replaceAll("[^0-9]", ""));
+                totalCarbs = Double.parseDouble(carbsPart.split("%")[0].replaceAll("[^0-9]", ""));
+                totalProtein = Double.parseDouble(proteinPart.split("%")[0].replaceAll("[^0-9]", ""));
+            } catch (Exception e) {
+                System.err.println("Error parsing nutrition breakdown: " + e.getMessage());
+            }
+        }
+        
+        graph.updateData(totalFat, totalCarbs, totalProtein);
+    }
+    
+    /**
+     * Updates the nutrition graph with specific values
+     */
+    public void updateNutritionGraph(int fatPercent, int carbsPercent, int proteinPercent) {
+        graph.updateData(fatPercent, carbsPercent, proteinPercent);
     }
     
     public JPanel getPanel() {
