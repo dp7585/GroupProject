@@ -1,8 +1,6 @@
 import java.awt.*;
 import java.util.Date;
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 /**
  * The MainView class implements the View interface and provides a graphical interface
@@ -65,47 +63,36 @@ public class MainView implements View {
         dateSpinner.setEditor(dateEditor);
         dateSpinner.setValue(new Date()); // Set to current date
         
-        JButton dateButton = new JButton("Load Date");
-        dateButton.addActionListener(e -> loadSelectedDate());
+
+        dateSpinner.addChangeListener(e -> {
+            Date selectedDate = (Date) dateSpinner.getValue();
+            controller.handleDateChange(selectedDate);
+        });
+    
         
         topPanel.add(new JLabel("Select Date:"));
         topPanel.add(dateSpinner);
-        topPanel.add(dateButton);
         
         panel.add(topPanel, BorderLayout.NORTH);
         panel.add(tabbedPane, BorderLayout.CENTER);
-        
-        // Add change listener to refresh when tabs change
-        tabbedPane.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                if (tabbedPane.getSelectedIndex() == 1) { // Log tab
-                    loadSelectedDate();
-                }
-            }
-        });
-
         panel.add(tabbedPane, BorderLayout.CENTER);
         frame.add(panel);
     }
 
-    private void loadSelectedDate() {
-        Date selectedDate = (Date) dateSpinner.getValue();
-        // Tell controller to load data for this date
-        if (controller != null) {
-            controller.loadDateData(selectedDate);
-        }
-    }
 
     private JPanel createLogPanel(LogView logView) {
         JPanel logPanel = new JPanel(new BorderLayout());
         
-        // Add the log view to the center
-        logPanel.add(logView.getPanel(), BorderLayout.CENTER);
+        // Create a container panel for log view and graph
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.add(logView.getPanel(), BorderLayout.CENTER);
         
-        // Add the nutrition graph to the south
-        logPanel.add(graph, BorderLayout.SOUTH);
+        // Initialize and add the graph
+        graph = new SimpleNutritionGraph();
+        graph.updateData(0, 0, 0); // Initialize with empty data
+        contentPanel.add(graph, BorderLayout.SOUTH);
         
+        logPanel.add(contentPanel, BorderLayout.CENTER);
         return logPanel;
     }
 
@@ -143,7 +130,12 @@ public class MainView implements View {
      * Updates the nutrition graph with specific values
      */
     public void updateNutritionGraph(int fatPercent, int carbsPercent, int proteinPercent) {
-        graph.updateData(fatPercent, carbsPercent, proteinPercent);
+        if (graph != null) {
+            graph.updateData(fatPercent, carbsPercent, proteinPercent);
+        }
+    }
+    public LogView getLogView() {
+        return this.logView;
     }
     
     public JPanel getPanel() {
@@ -158,5 +150,6 @@ public class MainView implements View {
     @Override
     public void setController(Controller controller) {
         this.controller = controller;
+        this.logView.setController(controller);
     }
 }

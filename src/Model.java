@@ -1,25 +1,30 @@
-
+// Updated Model.java
 import java.util.Date;
 
-// Model.java - The main model class that coordinates between food collection and daily logs
 public class Model {
     private FoodCollection foodCollection;
     private DailyLog dailyLog;
+    private ExerciseManager exerciseManager;
     private Date currentDate;
 
     public Model() {
-        this.currentDate = new Date(); // Default to current date
+        this.currentDate = new Date();
         this.foodCollection = new FoodCollection();
-        this.dailyLog = new DailyLog(foodCollection); //added the pass into foodcollection to dailylog
+        this.dailyLog = new DailyLog(foodCollection);
+        this.exerciseManager = new ExerciseManager();
+        this.exerciseManager.loadFromFile();
     }
 
-    // Getter methods
     public FoodCollection getFoodCollection() {
         return foodCollection;
     }
 
     public DailyLog getDailyLog() {
         return dailyLog;
+    }
+
+    public ExerciseManager getExerciseManager() {
+        return exerciseManager;
     }
 
     public void setCurrentDate(Date date) {

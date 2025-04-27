@@ -1,5 +1,6 @@
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * The Controller class acts as an intermediary between the Model and View
@@ -40,10 +41,36 @@ public class Controller {
         // Update model with selected date
         model.setCurrentDate(date);
         
-        // Refresh views
-        if (mainView != null) {
-            mainView.updateNutritionGraph();
+        // Calculate nutrition data for the selected date
+        double totalFat = 0, totalCarbs = 0, totalProtein = 0;
+        List<Food> foods = model.getDailyLog().getLogEntriesForDate(date);
+        
+        for (Food food : foods) {
+            totalFat += food.getNutrition("fat");
+            totalCarbs += food.getNutrition("carbs");
+            totalProtein += food.getNutrition("protein");
         }
+        
+        double totalMacros = totalFat + totalCarbs + totalProtein;
+        if (totalMacros > 0) {
+            int fatPercent = (int) Math.round((totalFat / totalMacros) * 100);
+            int carbsPercent = (int) Math.round((totalCarbs / totalMacros) * 100);
+            int proteinPercent = 100 - fatPercent - carbsPercent;
+            
+            updateNutritionGraph(fatPercent, carbsPercent, proteinPercent);
+        } else {
+            updateNutritionGraph(0, 0, 0);
+        }
+    }
+    
+
+    public void handleDateChange(Date newDate) {
+        model.setCurrentDate(newDate);
+        refreshViews();
+    }
+    
+    private void refreshViews() {
+        mainView.updateNutritionGraph();
         if (logView != null) {
             logView.updateLogDisplay();
         }

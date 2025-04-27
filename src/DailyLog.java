@@ -260,5 +260,6 @@ public class DailyLog {
 
     public void setWeight(Date date, double weight) {
         weightLogs.put(date, weight);
+        saveLogToCSV();
     }
 }

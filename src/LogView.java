@@ -32,7 +32,6 @@ public class LogView implements View {
     private DefaultTableModel exerciseTableModel;
     private JComboBox<Exercise> exerciseComboBox;
     private JTextField exerciseMinutesField;
-
     private Map<String, Double> foodServingsMap = new HashMap<>();
 
     public LogView(Model model) {
@@ -110,7 +109,7 @@ public class LogView implements View {
 
         // Exercise table
         exerciseTableModel = new DefaultTableModel(
-            new Object[]{"Exercise", "Minutes", "Calories Burned"}, 0);
+                new Object[] { "Exercise", "Minutes", "Calories Burned" }, 0);
         exerciseTable = new JTable(exerciseTableModel);
         JScrollPane exerciseScrollPane = new JScrollPane(exerciseTable);
 
@@ -118,11 +117,11 @@ public class LogView implements View {
         JPanel exerciseInputPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         exerciseComboBox = new JComboBox<>();
         updateExerciseComboBox();
-        
+
         exerciseMinutesField = new JTextField(5);
         JButton addExerciseButton = new JButton("Add Exercise");
         addExerciseButton.addActionListener(e -> addExerciseToLog());
-        
+
         JButton removeExerciseButton = new JButton("Remove Selected");
         removeExerciseButton.addActionListener(e -> removeSelectedExercise());
 
@@ -207,35 +206,109 @@ public class LogView implements View {
         }
     }
 
+    // In LogView.java
     private void updateExerciseComboBox() {
         exerciseComboBox.removeAllItems();
-        // This would actually come from the model's exercise manager
-        // For now we'll just add some example exercises
-        exerciseComboBox.addItem(new Exercise("Running", 600));
-        exerciseComboBox.addItem(new Exercise("Cycling", 500));
-        exerciseComboBox.addItem(new Exercise("Swimming", 400));
+
+        // Load exercises from ExerciseManager
+        for (Exercise exercise : model.getExerciseManager().getAllExercises()) {
+            exerciseComboBox.addItem(exercise);
+        }
+
+        // Add button to add new exercise
+        JButton addExerciseButton = new JButton("+");
+        addExerciseButton.setToolTipText("Add new exercise");
+        addExerciseButton.addActionListener(e -> showAddExerciseDialog());
+
+        // Add the button to the combo box
+        exerciseComboBox.setEditable(true);
+        JTextField textField = (JTextField) exerciseComboBox.getEditor().getEditorComponent();
+        textField.setLayout(new BorderLayout());
+        textField.add(addExerciseButton, BorderLayout.EAST);
+    }
+
+    private void showAddExerciseDialog() {
+        JDialog dialog = new JDialog();
+        dialog.setTitle("Add New Exercise");
+        dialog.setModal(true);
+        dialog.setLayout(new BorderLayout(10, 10));
+        dialog.setSize(350, 200);
+
+        // Form panel
+        JPanel formPanel = new JPanel(new GridLayout(3, 2, 5, 5));
+        formPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        JTextField nameField = new JTextField();
+        JTextField caloriesField = new JTextField();
+
+        formPanel.add(new JLabel("Exercise Name:"));
+        formPanel.add(nameField);
+        formPanel.add(new JLabel("Calories per hour:"));
+        formPanel.add(caloriesField);
+
+        // Button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton saveButton = new JButton("Save");
+        JButton cancelButton = new JButton("Cancel");
+
+        saveButton.addActionListener(e -> {
+            try {
+                String name = nameField.getText().trim();
+                if (name.isEmpty()) {
+                    JOptionPane.showMessageDialog(dialog, "Please enter an exercise name");
+                    return;
+                }
+
+                double calories = Double.parseDouble(caloriesField.getText());
+                if (calories <= 0) {
+                    JOptionPane.showMessageDialog(dialog, "Calories must be greater than 0");
+                    return;
+                }
+
+                // Add to ExerciseManager which will handle saving to CSV
+                if (model.getExerciseManager().addExercise(name, calories)) {
+                    updateExerciseComboBox(); // Refresh the combo box
+                    dialog.dispose();
+                } else {
+                    JOptionPane.showMessageDialog(dialog,
+                            "Exercise already exists or name contains invalid characters");
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(dialog, "Please enter a valid number for calories");
+            }
+        });
+
+        cancelButton.addActionListener(e -> dialog.dispose());
+
+        buttonPanel.add(cancelButton);
+        buttonPanel.add(saveButton);
+
+        dialog.add(formPanel, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        dialog.setLocationRelativeTo(panel);
+        dialog.setVisible(true);
     }
 
     private void addExerciseToLog() {
         try {
             Exercise exercise = (Exercise) exerciseComboBox.getSelectedItem();
             double minutes = Double.parseDouble(exerciseMinutesField.getText());
-            
+
             if (minutes <= 0) {
                 JOptionPane.showMessageDialog(panel, "Minutes must be greater than 0");
                 return;
             }
-            
+
             // Calculate calories burned based on user's weight
             double weight = model.getDailyLog().getWeight(new Date());
             double caloriesBurned = exercise.getCaloriesPerHour() * (weight / 100) * (minutes / 60);
-            
-            exerciseTableModel.addRow(new Object[]{
-                exercise.getName(),
-                String.format("%.1f", minutes),
-                String.format("%.1f", caloriesBurned)
+
+            exerciseTableModel.addRow(new Object[] {
+                    exercise.getName(),
+                    String.format("%.1f", minutes),
+                    String.format("%.1f", caloriesBurned)
             });
-            
+
             exerciseMinutesField.setText("");
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(panel, "Please enter valid minutes");
@@ -256,67 +329,65 @@ public class LogView implements View {
      */
     public void updateLogDisplay() {
         tableModel.setRowCount(0);
-        Date today = model.getCurrentDate(); // Get current date from model
-
-        double totalCalories = 0;
+        Date today = model.getCurrentDate();
+    
         double totalFat = 0, totalCarbs = 0, totalProtein = 0;
-
+    
         // Calculate totals from food servings map
         for (Map.Entry<String, Double> entry : foodServingsMap.entrySet()) {
             String foodName = entry.getKey();
             double servings = entry.getValue();
             Food food = model.getFoodCollection().findFoodByName(foodName);
-            
+    
             if (food != null) {
-                double calories = food.getNutrition("calories") * servings;
                 double fat = food.getNutrition("fat") * servings;
                 double carbs = food.getNutrition("carbs") * servings;
                 double protein = food.getNutrition("protein") * servings;
-                
-                tableModel.addRow(new Object[]{
+    
+                tableModel.addRow(new Object[] {
                     food.getName(),
                     String.format("%.1f", servings),
-                    String.format("%.1f", calories),
+                    String.format("%.1f", food.getNutrition("calories") * servings),
                     String.format("%.1f", fat),
                     String.format("%.1f", carbs),
                     String.format("%.1f", protein)
                 });
-                
-                totalCalories += calories;
+    
                 totalFat += fat;
                 totalCarbs += carbs;
                 totalProtein += protein;
             }
         }
-
+    
         // Update summary labels
         int calorieLimit = model.getDailyLog().getCalorieLimit(today);
+        double totalCalories = totalFat + totalCarbs + totalProtein;
         calorieStatusLabel.setText(String.format("Total Calories: %.1f / %d (%.1f%%)",
                 totalCalories, calorieLimit, (totalCalories / calorieLimit) * 100));
-
-        if (totalCalories > calorieLimit) {
-            calorieStatusLabel.setForeground(Color.RED);
-        } else {
-            calorieStatusLabel.setForeground(Color.GREEN);
-        }
-
+    
+        // Calculate percentages
         double totalMacros = totalFat + totalCarbs + totalProtein;
         if (totalMacros > 0) {
             int fatPercent = (int) Math.round((totalFat / totalMacros) * 100);
             int carbsPercent = (int) Math.round((totalCarbs / totalMacros) * 100);
-            int proteinPercent = 100 - fatPercent - carbsPercent; // Ensure total 100%
-    
+            int proteinPercent = 100 - fatPercent - carbsPercent;
+            
             nutritionBreakdownLabel.setText(String.format(
                     "Nutrition Breakdown: %d%% Fat | %d%% Carbs | %d%% Protein",
                     fatPercent, carbsPercent, proteinPercent));
-            
-            // Update the graph through controller
+    
+            // Update graph through controller
             if (controller != null) {
                 controller.updateNutritionGraph(fatPercent, carbsPercent, proteinPercent);
             }
+        } else {
+            nutritionBreakdownLabel.setText("No nutrition data available");
+            if (controller != null) {
+                controller.updateNutritionGraph(0, 0, 0);
+            }
         }
     }
-    
+
     @Override
     public void display() {
         // Handled by MainView

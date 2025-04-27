@@ -6,6 +6,10 @@ public class ExerciseManager {
     private static final String FILE_NAME = "data/exercise.csv";
     private final Map<String, Exercise> exerciseMap = new HashMap<>();
 
+    public ExerciseManager() {
+        loadFromFile();
+    }
+
     // Load exercises from CSV file
     public void loadFromFile() {
         exerciseMap.clear();
@@ -29,6 +33,7 @@ public class ExerciseManager {
                     exerciseMap.put(name, new Exercise(name, calories));
                 }
             }
+            
         } catch (IOException | NumberFormatException e) {
             System.err.println("Error loading file: " + e.getMessage());
         }
