@@ -27,10 +27,13 @@ public class ExerciseManager {
                 if (parts.length != 3) continue;
 
                 String name = parts[1];
-                double calories = Double.parseDouble(parts[2]);
+                double caloriesPerHour = Double.parseDouble(parts[2]);
 
+                //default duration to 0 if not specified in the csv file
+                int duration = 0;
+    
                 if (!exerciseMap.containsKey(name)) {
-                    exerciseMap.put(name, new Exercise(name, calories));
+                    exerciseMap.put(name, new Exercise(name, caloriesPerHour, duration));
                 }
             }
             
@@ -52,12 +55,13 @@ public class ExerciseManager {
     }
 
     // Add an exercise (must be unique)
-    public boolean addExercise(String name, double calories) {
+    public boolean addExercise(String name, double caloriesPerHour) {
         // Confirms unique, comma-validated format
         if (name.contains(",") || exerciseMap.containsKey(name)) {
             return false;
         }
-        exerciseMap.put(name, new Exercise(name, calories));
+        exerciseMap.put(name, new Exercise(name, caloriesPerHour, 0));
+        // durations et to 0 as default
         return true;
     }
 

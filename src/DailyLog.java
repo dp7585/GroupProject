@@ -9,6 +9,9 @@
  * the Value(V) = list of foods logged for that date
  * 
  * ESMARI LOUW 
+ * 
+ * version 2.0
+ * adding functionality for the exercise to be logged into daily log and then saved and read 
  */
 
 import java.io.BufferedReader;
@@ -28,6 +31,7 @@ public class DailyLog {
     private static final String LOG_FILE = "data/log.csv"; // adding to log the info to the file with strings
     @SuppressWarnings("FieldMayBeFinal")
     private FoodCollection foodCollection;
+    private Map<Date, List<Exercise>> exerciseEntries;  //store exercises for each day
 
     public DailyLog(FoodCollection foodCollection) {
         logEntries = new HashMap<>();
@@ -37,6 +41,17 @@ public class DailyLog {
         loadLogFromCSV(); // load log data on startup
 
     }
+
+    /**
+     * Adds exercises entry to the daily log
+     */
+    public void addExercise(Date date, Exercise exercise) {
+        exerciseEntries.putIfAbsent(date, new ArrayList<>());
+        exerciseEntries.get(date).add(exercise);
+        saveLogToCSV(); // saves straight away after adding
+    }
+
+
 
     /**
      * Adds food item to the daily log
@@ -165,6 +180,14 @@ public class DailyLog {
                     writer.write(String.format("%tY,%tm,%td,f,%s,1.0\n", date, date, date, food.getName()));
                 }
             }
+
+          // Save exercise log entries
+        for (Map.Entry<Date, List<Exercise>> entry : exerciseEntries.entrySet()) {
+            Date date = entry.getKey();
+            for (Exercise exercise : entry.getValue()) {
+                writer.write(String.format("%tY,%tm,%td,e,%s,%d\n", date, date, date, exercise.getName(), exercise.getDuration()));
+            }
+        }
         } catch (IOException e) {
             System.out.println("Error saving log file: " + e.getMessage());
         }
@@ -225,7 +248,15 @@ public class DailyLog {
                                 }
                             }
                             break;
-
+                        case "e": //load exercises
+                        if (parts.length >= 6 && !parts[4].trim().isEmpty()) {
+                            String exerciseName = parts[4].trim();
+                            int duration = Integer.parseInt(parts[5].trim());
+                            Exercise exercise = new Exercise(exerciseName,0, duration); // Assuming 0 calories for now
+                            exerciseEntries.putIfAbsent(date, new ArrayList<>());
+                            exerciseEntries.get(date).add(exercise);
+                        }
+                        break;
                     }
                 } catch (NumberFormatException e) {
                     System.err.println("Skipping malformed line in log file: " + line);
