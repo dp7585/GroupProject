@@ -161,41 +161,45 @@ public class DailyLog {
      */
     private void saveLogToCSV() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(LOG_FILE))) {
-            // save the weight entries
+            // Use US locale to ensure decimal points are used
+            Locale usLocale = new Locale("en", "US");
+            
+            // Save weight entries first
             for (Map.Entry<Date, Double> entry : weightLogs.entrySet()) {
                 Date date = entry.getKey();
-                writer.write(String.format("%tY,%tm,%td,w,%.1f\n", date, date, date, entry.getValue()));
+                writer.write(String.format(usLocale, "%tY,%tm,%td,w,%.1f%n", 
+                    date, date, date, entry.getValue()));
             }
-
-            // save calorie limit entry
+    
+            // Save calorie limit entries next
             for (Map.Entry<Date, Integer> entry : calorieLimits.entrySet()) {
                 Date date = entry.getKey();
-                writer.write(String.format("%tY,%tm,%td,c,%d\n", date, date, date, entry.getValue()));
+                writer.write(String.format(usLocale, "%tY,%tm,%td,c,%d%n", 
+                    date, date, date, entry.getValue()));
             }
-
-            // save food log entries
+    
+            // Save food log entries
             for (Map.Entry<Date, List<Food>> entry : logEntries.entrySet()) {
                 Date date = entry.getKey();
                 for (Food food : entry.getValue()) {
-                    // Get the servings from foodServingsMap
                     double servings = foodServingsMap.getOrDefault(food.getName(), 1.0);
-                    writer.write(String.format("%tY,%tm,%td,f,%s,%.1f\n",
-                            date, date, date, food.getName(), servings));
+                    writer.write(String.format(usLocale, "%tY,%tm,%td,f,%s,%.1f%n",
+                        date, date, date, food.getName(), servings));
                 }
             }
-
+    
             // Save exercise log entries
             for (Map.Entry<Date, List<Exercise>> entry : exerciseEntries.entrySet()) {
                 Date date = entry.getKey();
                 for (Exercise exercise : entry.getValue()) {
-                    writer.write(String.format("%tY,%tm,%td,e,%s,%.1f\n",
-                            date, date, date, exercise.getName(), (double) exercise.getDuration()));
+                    writer.write(String.format(usLocale, "%tY,%tm,%td,e,%s,%.1f%n",
+                        date, date, date, exercise.getName(), (double) exercise.getDuration()));
                 }
             }
         } catch (IOException e) {
             System.out.println("Error saving log file: " + e.getMessage());
         }
-    }
+    }   
 
     /**
      * load log data from CSV (Food, Weight, Calorie limits)
@@ -226,20 +230,19 @@ public class DailyLog {
 
                     switch (parts[3].trim()) {
                         case "w":
-                            if (parts.length >= 5 && !parts[4].trim().isEmpty()) {
+                            if (parts.length >= 5) {
                                 double weight = Double.parseDouble(parts[4].trim());
                                 weightLogs.put(date, weight);
                             }
                             break;
                         case "c":
-                            if (parts.length >= 5 && !parts[4].trim().isEmpty()) {
+                            if (parts.length >= 5) {
                                 int calorieLimit = Integer.parseInt(parts[4].trim());
                                 calorieLimits.put(date, calorieLimit);
                             }
                             break;
-                        // And update loadLogFromCSV() to load servings:
                         case "f":
-                            if (parts.length >= 6 && !parts[4].trim().isEmpty()) {
+                            if (parts.length >= 6) {
                                 String foodName = parts[4].trim();
                                 double servings = Double.parseDouble(parts[5].trim());
 
@@ -251,12 +254,11 @@ public class DailyLog {
                                 }
                             }
                             break;
-                        case "e": // load exercises
-                            if (parts.length >= 6 && !parts[4].trim().isEmpty()) {
+                        case "e":
+                            if (parts.length >= 6) {
                                 String exerciseName = parts[4].trim();
-                                int duration = Integer.parseInt(parts[5].trim());
-                                Exercise exercise = new Exercise(exerciseName, 0, duration); // Assuming 0 calories for
-                                                                                             // now
+                                double duration = Double.parseDouble(parts[5].trim());
+                                Exercise exercise = new Exercise(exerciseName, 0, (int)duration);
                                 exerciseEntries.putIfAbsent(date, new ArrayList<>());
                                 exerciseEntries.get(date).add(exercise);
                             }
@@ -291,6 +293,7 @@ public class DailyLog {
 
     public void setCalorieLimit(Date date, int limit) {
         calorieLimits.put(date, limit);
+        saveLogToCSV();
     }
 
     public void setWeight(Date date, double weight) {

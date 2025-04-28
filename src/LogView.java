@@ -91,11 +91,60 @@ public class LogView implements View {
         inputPanel.add(addButton);
         inputPanel.add(deleteButton);
 
-        // Weight and calorie limit controls
+         // Update the settings panel to properly handle updates
+         // Update the settings panel
         JPanel settingsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         JTextField weightField = new JTextField(5);
         JTextField calorieLimitField = new JTextField(5);
         JButton updateSettingsButton = new JButton("Update Settings");
+
+        // Set initial values
+        Date today = model.getCurrentDate();
+        weightField.setText(String.format("%.1f", model.getDailyLog().getWeight(today)));
+        calorieLimitField.setText(String.valueOf(model.getDailyLog().getCalorieLimit(today)));
+
+        updateSettingsButton.addActionListener(e -> {
+            try {
+                // Parse weight with more flexible number handling
+                String weightText = weightField.getText().trim().replace(",", ".");
+                double weight = Double.parseDouble(weightText);
+                
+                // Parse calorie limit
+                String limitText = calorieLimitField.getText().trim();
+                int limit = Integer.parseInt(limitText);
+                
+                // Validate values
+                if (weight <= 0) {
+                    JOptionPane.showMessageDialog(panel, 
+                        "Weight must be a positive number", "Invalid Input", JOptionPane.WARNING_MESSAGE);
+                    weightField.requestFocus();
+                    return;
+                }
+                
+                if (limit <= 0) {
+                    JOptionPane.showMessageDialog(panel, 
+                        "Calorie limit must be a positive number", "Invalid Input", JOptionPane.WARNING_MESSAGE);
+                    calorieLimitField.requestFocus();
+                    return;
+                }
+                
+                // Update both values
+                model.getDailyLog().setWeight(today, weight);
+                model.getDailyLog().setCalorieLimit(today, limit);
+                
+                // Refresh the display
+                updateLogDisplay();
+                
+                JOptionPane.showMessageDialog(panel, 
+                    "Settings updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(panel, 
+                    "Please enter valid numbers for weight and calorie limit\n" +
+                    "Weight example: 150.5\n" +
+                    "Calorie limit example: 2000", 
+                    "Invalid Input", JOptionPane.ERROR_MESSAGE);
+            }
+        });
 
         settingsPanel.add(new JLabel("Weight (lbs):"));
         settingsPanel.add(weightField);

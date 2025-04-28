@@ -22,7 +22,7 @@ public class Exercise {
     }
 
     @Override
-public String toString() {
-    return String.format("e,%s,%.1f", name, caloriesPerHour);
-}
+    public String toString() {
+        return String.format("e,%s,%.1f", name, caloriesPerHour);
+    }
 }

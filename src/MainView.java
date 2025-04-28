@@ -141,6 +141,10 @@ public class MainView implements View {
     public LogView getLogView() {
         return this.logView;
     }
+
+    public JSpinner getDateSpinner() {
+        return dateSpinner;
+    }
     
     public JPanel getPanel() {
         return panel;
