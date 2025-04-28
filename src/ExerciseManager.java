@@ -44,13 +44,12 @@ public class ExerciseManager {
 
     // Save exercises to CSV file
     public void saveToFile() {
-        // Writes text to files
         try (PrintWriter pw = new PrintWriter(new FileWriter(FILE_NAME))) {
             for (Exercise ex : exerciseMap.values()) {
-                pw.println(ex.toString());
+                pw.println(ex.toString()); // This now uses the corrected toString()
             }
         } catch (IOException e) {
-            System.err.println("Error saving file: " + e.getMessage());
+            System.err.println("Error saving exercise file: " + e.getMessage());
         }
     }
 
@@ -61,6 +60,7 @@ public class ExerciseManager {
             return false;
         }
         exerciseMap.put(name, new Exercise(name, caloriesPerHour, 0));
+        saveToFile();
         // durations et to 0 as default
         return true;
     }
