@@ -100,30 +100,33 @@ public class MainView implements View {
      * Updates the nutrition graph with current data
      */
     public void updateNutritionGraph() {
-        // Calculate totals from the log view
-        double totalFat = 0;
-        double totalCarbs = 0;
-        double totalProtein = 0;
+        // Default values
+        int fatPercent = 0;
+        int carbsPercent = 0;
+        int proteinPercent = 0;
         
         // Get the values from the log view's nutrition breakdown label
         String breakdownText = logView.nutritionBreakdownLabel.getText();
-        if (breakdownText != null && !breakdownText.equals(" ")) {
+        
+        if (breakdownText != null && !breakdownText.equals(" ") && !breakdownText.equals("No nutrition data available")) {
             try {
-                // Parse the percentages from the label text
+                // Split the text by pipe character
                 String[] parts = breakdownText.split("\\|");
-                String fatPart = parts[0].trim();
-                String carbsPart = parts[1].trim();
-                String proteinPart = parts[2].trim();
                 
-                totalFat = Double.parseDouble(fatPart.split("%")[0].replaceAll("[^0-9]", ""));
-                totalCarbs = Double.parseDouble(carbsPart.split("%")[0].replaceAll("[^0-9]", ""));
-                totalProtein = Double.parseDouble(proteinPart.split("%")[0].replaceAll("[^0-9]", ""));
+                // Only proceed if we got exactly 3 parts
+                if (parts.length == 3) {
+                    fatPercent = Integer.parseInt(parts[0].replaceAll("[^0-9]", "").trim());
+                    carbsPercent = Integer.parseInt(parts[1].replaceAll("[^0-9]", "").trim());
+                    proteinPercent = Integer.parseInt(parts[2].replaceAll("[^0-9]", "").trim());
+                }
             } catch (Exception e) {
                 System.err.println("Error parsing nutrition breakdown: " + e.getMessage());
+                // Use default values (0, 0, 0) if parsing fails
             }
         }
         
-        graph.updateData(totalFat, totalCarbs, totalProtein);
+        // Update the graph with the values
+        graph.updateData(fatPercent, carbsPercent, proteinPercent);
     }
     
     /**
@@ -134,6 +137,7 @@ public class MainView implements View {
             graph.updateData(fatPercent, carbsPercent, proteinPercent);
         }
     }
+
     public LogView getLogView() {
         return this.logView;
     }

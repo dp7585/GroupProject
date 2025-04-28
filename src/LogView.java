@@ -372,8 +372,9 @@ public class LogView implements View {
             int carbsPercent = (int) Math.round((totalCarbs / totalMacros) * 100);
             int proteinPercent = 100 - fatPercent - carbsPercent;
             
+            // Format with pipes for easier parsing
             nutritionBreakdownLabel.setText(String.format(
-                    "Nutrition Breakdown: %d%% Fat | %d%% Carbs | %d%% Protein",
+                    "%d%% Fat | %d%% Carbs | %d%% Protein",
                     fatPercent, carbsPercent, proteinPercent));
     
             // Update graph through controller
