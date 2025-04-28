@@ -31,12 +31,14 @@ public class DailyLog {
     private static final String LOG_FILE = "data/log.csv"; // adding to log the info to the file with strings
     @SuppressWarnings("FieldMayBeFinal")
     private FoodCollection foodCollection;
-    private Map<Date, List<Exercise>> exerciseEntries;  //store exercises for each day
+    private Map<Date, List<Exercise>> exerciseEntries; // store exercises for each day
+    private Map<String, Double> foodServingsMap = new HashMap<>();
 
     public DailyLog(FoodCollection foodCollection) {
         logEntries = new HashMap<>();
         weightLogs = new HashMap<>();
         calorieLimits = new HashMap<>();
+        exerciseEntries = new HashMap<>();
         this.foodCollection = foodCollection;
         loadLogFromCSV(); // load log data on startup
 
@@ -50,8 +52,6 @@ public class DailyLog {
         exerciseEntries.get(date).add(exercise);
         saveLogToCSV(); // saves straight away after adding
     }
-
-
 
     /**
      * Adds food item to the daily log
@@ -177,17 +177,21 @@ public class DailyLog {
             for (Map.Entry<Date, List<Food>> entry : logEntries.entrySet()) {
                 Date date = entry.getKey();
                 for (Food food : entry.getValue()) {
-                    writer.write(String.format("%tY,%tm,%td,f,%s,1.0\n", date, date, date, food.getName()));
+                    // Get the servings from foodServingsMap
+                    double servings = foodServingsMap.getOrDefault(food.getName(), 1.0);
+                    writer.write(String.format("%tY,%tm,%td,f,%s,%.1f\n",
+                            date, date, date, food.getName(), servings));
                 }
             }
 
-          // Save exercise log entries
-        for (Map.Entry<Date, List<Exercise>> entry : exerciseEntries.entrySet()) {
-            Date date = entry.getKey();
-            for (Exercise exercise : entry.getValue()) {
-                writer.write(String.format("%tY,%tm,%td,e,%s,%d\n", date, date, date, exercise.getName(), exercise.getDuration()));
+            // Save exercise log entries
+            for (Map.Entry<Date, List<Exercise>> entry : exerciseEntries.entrySet()) {
+                Date date = entry.getKey();
+                for (Exercise exercise : entry.getValue()) {
+                    writer.write(String.format("%tY,%tm,%td,e,%s,%.1f\n",
+                            date, date, date, exercise.getName(), (double) exercise.getDuration()));
+                }
             }
-        }
         } catch (IOException e) {
             System.out.println("Error saving log file: " + e.getMessage());
         }
@@ -233,30 +237,30 @@ public class DailyLog {
                                 calorieLimits.put(date, calorieLimit);
                             }
                             break;
+                        // And update loadLogFromCSV() to load servings:
                         case "f":
                             if (parts.length >= 6 && !parts[4].trim().isEmpty()) {
                                 String foodName = parts[4].trim();
-                              
-                                //using foodcollection to the actual name of food 
-                                Food food = foodCollection.getFood(foodName); // Look up the food by name
-                                if (food == null) {
-                                    System.err.println("Food not found: " + foodName); // Handle if food is not in the
-                                                                                       // collection
-                                } else {
+                                double servings = Double.parseDouble(parts[5].trim());
+
+                                Food food = foodCollection.getFood(foodName);
+                                if (food != null) {
                                     logEntries.putIfAbsent(date, new ArrayList<>());
                                     logEntries.get(date).add(food);
+                                    foodServingsMap.put(foodName, servings);
                                 }
                             }
                             break;
-                        case "e": //load exercises
-                        if (parts.length >= 6 && !parts[4].trim().isEmpty()) {
-                            String exerciseName = parts[4].trim();
-                            int duration = Integer.parseInt(parts[5].trim());
-                            Exercise exercise = new Exercise(exerciseName,0, duration); // Assuming 0 calories for now
-                            exerciseEntries.putIfAbsent(date, new ArrayList<>());
-                            exerciseEntries.get(date).add(exercise);
-                        }
-                        break;
+                        case "e": // load exercises
+                            if (parts.length >= 6 && !parts[4].trim().isEmpty()) {
+                                String exerciseName = parts[4].trim();
+                                int duration = Integer.parseInt(parts[5].trim());
+                                Exercise exercise = new Exercise(exerciseName, 0, duration); // Assuming 0 calories for
+                                                                                             // now
+                                exerciseEntries.putIfAbsent(date, new ArrayList<>());
+                                exerciseEntries.get(date).add(exercise);
+                            }
+                            break;
                     }
                 } catch (NumberFormatException e) {
                     System.err.println("Skipping malformed line in log file: " + line);

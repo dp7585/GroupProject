@@ -165,16 +165,20 @@ public class LogView implements View {
         try {
             Food selectedFood = (Food) foodComboBox.getSelectedItem();
             double servings = Double.parseDouble(servingsField.getText());
-
+    
             if (servings <= 0) {
                 JOptionPane.showMessageDialog(panel, "Servings must be greater than 0");
                 return;
             }
-
+    
+            // Add to the daily log
+            Date today = model.getCurrentDate();
+            model.getDailyLog().addFood(today, selectedFood); // This should trigger save
+            
             // Store the servings for this food
             foodServingsMap.put(selectedFood.getName(), servings);
-
-            updateLogDisplay(); // Make sure this is called after adding
+    
+            updateLogDisplay();
             servingsField.setText("");
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(panel, "Please enter a valid number for servings.");
@@ -289,31 +293,40 @@ public class LogView implements View {
         dialog.setVisible(true);
     }
 
-    private void addExerciseToLog() {
-        try {
-            Exercise exercise = (Exercise) exerciseComboBox.getSelectedItem();
-            double minutes = Double.parseDouble(exerciseMinutesField.getText());
+    
+private void addExerciseToLog() {
+    try {
+        Exercise exercise = (Exercise) exerciseComboBox.getSelectedItem();
+        double minutes = Double.parseDouble(exerciseMinutesField.getText());
 
-            if (minutes <= 0) {
-                JOptionPane.showMessageDialog(panel, "Minutes must be greater than 0");
-                return;
-            }
-
-            // Calculate calories burned based on user's weight
-            double weight = model.getDailyLog().getWeight(new Date());
-            double caloriesBurned = exercise.getCaloriesPerHour() * (weight / 100) * (minutes / 60);
-
-            exerciseTableModel.addRow(new Object[] {
-                    exercise.getName(),
-                    String.format("%.1f", minutes),
-                    String.format("%.1f", caloriesBurned)
-            });
-
-            exerciseMinutesField.setText("");
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(panel, "Please enter valid minutes");
+        if (minutes <= 0) {
+            JOptionPane.showMessageDialog(panel, "Minutes must be greater than 0");
+            return;
         }
+
+        // Calculate calories burned based on user's weight
+        double weight = model.getDailyLog().getWeight(new Date());
+        double caloriesBurned = exercise.getCaloriesPerHour() * (weight / 100) * (minutes / 60);
+
+        // Create a new exercise with the duration
+        Exercise loggedExercise = new Exercise(exercise.getName(), exercise.getCaloriesPerHour(), (int)minutes);
+        
+        // Add to the daily log's exercise entries
+        Date today = model.getCurrentDate();
+        model.getDailyLog().addExercise(today, loggedExercise);
+        
+        // Update UI
+        exerciseTableModel.addRow(new Object[] {
+                loggedExercise.getName(),
+                String.format("%.1f", minutes),
+                String.format("%.1f", caloriesBurned)
+        });
+
+        exerciseMinutesField.setText("");
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(panel, "Please enter valid minutes");
     }
+}
 
     private void removeSelectedExercise() {
         int selectedRow = exerciseTable.getSelectedRow();
@@ -372,9 +385,8 @@ public class LogView implements View {
             int carbsPercent = (int) Math.round((totalCarbs / totalMacros) * 100);
             int proteinPercent = 100 - fatPercent - carbsPercent;
             
-            // Format with pipes for easier parsing
             nutritionBreakdownLabel.setText(String.format(
-                    "%d%% Fat | %d%% Carbs | %d%% Protein",
+                    "Nutrition Breakdown: %d%% Fat | %d%% Carbs | %d%% Protein",
                     fatPercent, carbsPercent, proteinPercent));
     
             // Update graph through controller

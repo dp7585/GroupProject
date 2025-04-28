@@ -1,14 +1,6 @@
-
-
 public class Exercise {
-    // Exercise name
-    @SuppressWarnings("FieldMayBeFinal")
     private String name;
-    // Calories burned per hour
-    @SuppressWarnings("FieldMayBeFinal")
     private double caloriesPerHour;
-    // Duration of the exercise in minutes
-    @SuppressWarnings("FieldMayBeFinal")
     private int duration;
 
     public Exercise(String name, double caloriesPerHour, int duration) {
@@ -17,7 +9,6 @@ public class Exercise {
         this.duration = duration;
     }
 
-    // Getter methods for other classes
     public String getName() {
         return name;
     }
@@ -26,11 +17,12 @@ public class Exercise {
         return caloriesPerHour;
     }
 
-    @Override
-    public String toString() {
-        return name;
-    }
     public int getDuration() {
         return duration;
     }
+
+    @Override
+public String toString() {
+    return String.format("e,%s,%.1f", name, caloriesPerHour);
+}
 }
