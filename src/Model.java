@@ -1,6 +1,9 @@
 // Updated Model.java
 import java.util.Date;
 
+/**
+ * Model class for the application
+ */
 public class Model {
     private FoodCollection foodCollection;
     private DailyLog dailyLog;
@@ -15,6 +18,7 @@ public class Model {
         this.exerciseManager.loadFromFile();
     }
 
+    // Getters and setters for the model
     public FoodCollection getFoodCollection() {
         return foodCollection;
     }

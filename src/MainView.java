@@ -79,7 +79,7 @@ public class MainView implements View {
         frame.add(panel);
     }
 
-
+    
     private JPanel createLogPanel(LogView logView) {
         JPanel logPanel = new JPanel(new BorderLayout());
         
