@@ -1,6 +1,7 @@
 import java.awt.*;
 import javax.swing.*;
 
+/** Graph for displaying the nutrition breakdown of a food */
 public class SimpleNutritionGraph extends JPanel {
     private int fatPercent = 0;
     private int carbsPercent = 0;
@@ -49,6 +50,7 @@ public class SimpleNutritionGraph extends JPanel {
         drawBar(g2, startX + 2 * (barWidth + padding), startY, barWidth, height, proteinPercent, Color.BLUE, "Protein");
     }
 
+    // Draws the bars
     private void drawBar(Graphics2D g2, int x, int y, int width, int totalHeight, int percent, Color color, String label) {
         int barHeight = (int) (percent / 100.0 * (totalHeight - 40));
         g2.setColor(color);
